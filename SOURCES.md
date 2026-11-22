@@ -5,3 +5,5 @@
 - Las skills iniciales son guías originales para Flyver. No incluyen instrucciones privadas del asistente, datos de clientes, secretos ni contenido de otros catálogos.
 - Las cuatro recomendaciones externas para una landing están documentadas con revisión y licencia en [docs/landing-skills.md](docs/landing-skills.md); Una copia íntegra de las 53 skills disponibles en el commit inicial y sus seis guías compartidas está en `vendor/coreyhaines31-marketingskills`, junto con su licencia MIT y las versiones, commit y hashes por skill. No se ejecuta código upstream en la captura ni en CI.
 - Este repositorio no otorga una licencia pública de reutilización.
+
+- Guía local de Astryx: instrucciones originales basadas en el [repositorio oficial de Meta](https://github.com/meta/astryx) y su [documentación de generación de skills](https://astryx.atmeta.com/docs/authoring). No se copia la skill que genera su CLI.

@@ -175,6 +175,14 @@ export function loadCatalog(root = catalogRoot, config = root === catalogRoot ? 
     }
   }
   if (config) {
+    const listed = new Set(config.localSkills);
+    const missing = [...listed].filter((name) => !catalog.has(name));
+    const unlisted = [...catalog.keys()].filter((name) => !listed.has(name));
+    if (missing.length || unlisted.length) {
+      throw new Error('localSkills no coincide con las skills propias: ' +
+        [missing.length && 'faltan en disco: ' + missing.join(', '),
+         unlisted.length && 'faltan en YAML: ' + unlisted.join(', ')].filter(Boolean).join('; '));
+    }
     const approved = new Set(config.sources.map((source) => source.id));
     for (const entry of readdirSync(vendors, { withFileTypes: true })) {
       if (!entry.isDirectory() || !approved.has(entry.name)) throw new Error('Snapshot sin fuente YAML aprobada: ' + entry.name);

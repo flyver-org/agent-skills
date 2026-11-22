@@ -5,7 +5,8 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { loadCatalog } from '../scripts/skills.mjs';
+import { catalogRoot, loadCatalog } from '../scripts/skills.mjs';
+import { readUpstreamConfig } from '../scripts/upstreams.mjs';
 
 const entry = fileURLToPath(new URL('../scripts/skills.mjs', import.meta.url));
 const getArgs = (target, ...names) => ['install', '--target', target, ...names];
@@ -156,4 +157,34 @@ test('audits each approved package separately without network calls', () => {
   assert.equal(lines.length, [...policy.values()].filter((s) => s.commit).length);
   assert.ok(lines.every((line) => /: hashes verificados$/.test(line)));
   assert.doesNotMatch(result.stdout, /flyver-prospeccion-b2b/);
+});
+
+test('local skills are validated against YAML but not emitted as remote sources', () => {
+  const policy = readUpstreamConfig();
+  const ast = 'flyver-astryx-react';
+  assert.ok(policy.localSkills.includes(ast));
+  assert.equal(loadCatalog().get(ast).category, 'design');
+  assert.equal(loadCatalog().get(ast).sourceId, undefined);
+  assert.throws(() => loadCatalog(catalogRoot, { ...policy, localSkills: policy.localSkills.filter(n => n !== ast) }),
+    /faltan en YAML: flyver-astryx-react/);
+  assert.throws(() => loadCatalog(catalogRoot, { ...policy, localSkills: [...policy.localSkills, 'missing-local'] }),
+    /faltan en disco: missing-local/);
+  const command = fileURLToPath(new URL('../scripts/upstreams.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [command, 'vendor-roots'], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.stdout.trim().split(/\r?\n/), policy.sources.map(src => 'vendor/' + src.id));
+  assert.ok(!result.stdout.includes(ast));
+});
+
+test('installing the Astryx guide copies the instructions, not app dependencies or generated skills', (t) => {
+  const target = temp(t);
+  const guide = 'flyver-astryx-react';
+  const result = run(...getArgs(target, guide));
+  assert.equal(result.status, 0, result.stderr);
+  const skills = join(target, '.agents', 'skills');
+  assert.deepEqual(readdirSync(target), ['.agents']);
+  assert.deepEqual(readdirSync(skills), [guide]);
+  const md = readFileSync(join(skills, guide, 'SKILL.md'), 'utf8');
+  assert.match(md, /pnpm exec astryx init --to skills/);
+  assert.match(md, /No agregues reset\.css al CSS global/);
 });

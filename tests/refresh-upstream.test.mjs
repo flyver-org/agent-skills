@@ -5,11 +5,13 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { test } from 'node:test';
 import { refreshSnapshot } from '../scripts/refresh-upstream.mjs';
-import { parseUpstreamConfig } from '../scripts/upstreams.mjs';
+import { parseUpstreamConfig, readUpstreamConfig } from '../scripts/upstreams.mjs';
 import { reviewSources } from '../scripts/review-upstreams.mjs';
 import { catalogRoot, loadCatalog } from '../scripts/skills.mjs';
 
-const wrap = (sources) => 'schemaVersion: 2\nsources:\n' + sources.join('');
+const wrap = (sources, locals = readUpstreamConfig().localSkills) =>
+  'schemaVersion: 2\nlocalSkills:\n' + locals.map((name) => '  - ' + name + '\n').join('') +
+  'sources:\n' + sources.join('');
 const source = (id, skill, props = {}) =>
   '  - id: ' + id + '\n    repository: ' + (props.repository ?? 'https://github.com/example-org/' + id) +
   '\n    branch: ' + (props.branch ?? 'stable') + '\n    license: ' + (props.license ?? 'MIT') +
@@ -140,6 +142,9 @@ test('the YAML policy fails closed on unsafe source, refs, unknown keys or dupli
     wrap([source('first', 'demo-example', { skillsPath: '../../outside' })]),
     wrap([source('first', 'demo-example'), source('second', 'demo-example')]),
     wrap([source('first', 'demo-example'), source('first', 'other-example')]),
+    wrap([source('first', 'demo-example')], ['duplicate-local', 'duplicate-local']),
+    wrap([source('first', 'demo-example')], ['demo-example']),
+    wrap([source('first', 'demo-example')], ['../../invalid']),
   ]) assert.throws(() => parseUpstreamConfig(broken), /upstreams.yaml/);
 });
 
@@ -171,6 +176,8 @@ test('reviews two independent sources and only changes the source with approved 
   const result = reviewSources(config, { vendors, remote });
   assert.deepEqual(result.failed, []);
   assert.deepEqual(seen, [[a.config.repository, a.config.branch], [b.config.repository, b.config.branch]]);
+  assert.ok(config.localSkills.includes('flyver-astryx-react'));
+  assert.doesNotMatch(result.summary, /flyver-astryx-react/);
   assert.deepEqual(clones, ['source-a']);
   assert.equal(JSON.parse(read(targetA)).commit, a2);
   assert.equal(read(targetB), bLock);

@@ -1,5 +1,16 @@
 # Política revisada por PR. Los resultados observados se generan en cada lock.
 schemaVersion: 2
+# Las locales se editan por PR; la revisión semanal no las consulta.
+localSkills:
+  - flyver-astryx-react
+  - flyver-brief-ui
+  - flyver-contenido-social
+  - flyver-documentacion-de-flujos
+  - flyver-preparacion-deploy
+  - flyver-prospeccion-b2b
+  - flyver-revision-de-cambios
+  - flyver-revision-visual
+  - flyver-video-explicativo
 sources:
   - id: coreyhaines31-marketingskills
     repository: https://github.com/coreyhaines31/marketingskills
