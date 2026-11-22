@@ -1,0 +1,30 @@
+{
+  "repository": "https://github.com/coreyhaines31/marketingskills",
+  "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+  "license": "MIT",
+  "skills": [
+    "copywriting",
+    "cro",
+    "customer-research",
+    "product-marketing"
+  ],
+  "sha256": {
+    "LICENSE": "b70d71e24e40fce5da8f4b6f9cd862096a048e433db7f3c8cac5e348e6d34591",
+    "skills/copywriting/SKILL.md": "86dc0466493e8ac59ab17a8f28fd1403e2a322921ed2a8f96b2d0c442ad99d01",
+    "skills/copywriting/evals/evals.json": "ccec86052a0edd8646d0e50e63c08e0e971f443d8f6e9178843a1629f79efdb0",
+    "skills/copywriting/references/ai-tells.md": "b98c3a19b3a75c714d69e80a0076e4c07244b0e833c2ce81ff2631224fb7f7b2",
+    "skills/copywriting/references/copy-frameworks.md": "4db06c481a904be3e4571ad8f671532c97ec186ddf0fb8aee3e3a56ef8e3d441",
+    "skills/copywriting/references/natural-transitions.md": "9bd61b0de5be2c4de4ce130c68236b4f290b12737823827a458bb2b4c8584683",
+    "skills/cro/SKILL.md": "0f8588aba125de102498ca3bbaa0151c8ebffa0a7ad85c14d992ef16db02fb2d",
+    "skills/cro/evals/evals.json": "62f3003602836e2b49d797ca582e7703629a6b07b131eb77b51b2bb39fe65775",
+    "skills/cro/references/experiments.md": "bbcc356c0af36cfaa4556bf9e929deac30c65cafb37f909d7c51d4777fe254ca",
+    "skills/cro/references/form.md": "49b8f29b3da1ae6510572288cad3eb1f3d43a969373443be98b38639746587e6",
+    "skills/customer-research/SKILL.md": "d12b522641884acb385f7a919138b5bfbe4ad9b070bd13a470923eebaa682a4f",
+    "skills/customer-research/evals/evals.json": "fc8a15d12e582b55fa52ad27925594ab796ebd6a8ea13fed13722f97e4c51f01",
+    "skills/customer-research/references/interviews-and-surveys.md": "56adecdc40af1242464937100349fc1a161627394909551720494bc5ee537076",
+    "skills/customer-research/references/source-guides.md": "7490a8d04f209d4c8c987530e79d0883a6b42027b86a920fc751cf8ea9904892",
+    "skills/product-marketing/SKILL.md": "8dbccc22998b3cac194c3509fa93d119163b82c9b0a1ce573e6737e5a5ccf555",
+    "skills/product-marketing/evals/evals.json": "0c6599b88f50ec1be91096a36ba6c5a15cf8312151394e3469e5ddb991b19afb",
+    "skills/product-marketing/references/brand-voice.md": "932f3453db2761f03050792e39800150495dab449750b40913a4314ea97e7672"
+  }
+}
