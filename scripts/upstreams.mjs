@@ -19,16 +19,25 @@ export const knownLicenses = new Map([
 export function parseUpstreamConfig(raw) {
   if (Buffer.byteLength(raw, 'utf8') > 32_768) throw new Error('upstreams.yaml excede el límite.');
   const sources = [];
+  const localSkills = [];
+  const sections = new Set();
   let schema = false;
-  let header = false;
+  let section;
   let current;
   for (const [index, original] of raw.replace(/\r\n/g, '\n').split('\n').entries()) {
     const line = original.trimEnd();
     if (!line || /^ *#/.test(line)) continue;
     const invalid = () => { throw new Error('upstreams.yaml: línea inválida o duplicada ' + (index + 1)); };
-    if (line === 'schemaVersion: 2' && !schema && !header) schema = true;
-    else if (line === 'sources:' && schema && !header) header = true;
-    else if (header) {
+    if (line === 'schemaVersion: 2' && !schema && !section) schema = true;
+    else if (schema && /^(localSkills|sources):$/.test(line)) {
+      section = line.slice(0, -1);
+      if (sections.has(section)) invalid();
+      sections.add(section);
+    } else if (section === 'localSkills') {
+      const entry = /^  - ([a-z0-9-]{1,64})$/.exec(line);
+      if (!entry || !slug.test(entry[1]) || !portablePath(entry[1]) || localSkills.includes(entry[1])) invalid();
+      localSkills.push(entry[1]);
+    } else if (section === 'sources') {
       const origin = /^  - id: (\S+)$/.exec(line);
       if (origin) {
         current = { id: origin[1] };
@@ -44,10 +53,13 @@ export function parseUpstreamConfig(raw) {
     } else invalid();
   }
 
+  if (!sections.has('localSkills') || localSkills.length > 100) {
+    throw new Error('upstreams.yaml requiere un inventario localSkills de hasta 100 entradas.');
+  }
   if (!sources.length || sources.length > 8) throw new Error('upstreams.yaml requiere entre 1 y 8 fuentes.');
   const ids = new Set();
   const locations = new Set();
-  const names = new Map();
+  const names = new Map(localSkills.map((name) => [name, 'localSkills']));
   for (const source of sources) {
     const { id, repository, branch, license, skills } = source;
     source.skillsPath ??= 'skills';
@@ -73,7 +85,7 @@ export function parseUpstreamConfig(raw) {
     }
   }
   if (names.size > 200) throw new Error('upstreams.yaml excede el límite global de skills.');
-  return { sources };
+  return { localSkills, sources };
 }
 
 export function readUpstreamConfig() {
