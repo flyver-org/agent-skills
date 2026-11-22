@@ -1,35 +1,46 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { test } from 'node:test';
 import { refreshSnapshot } from '../scripts/refresh-upstream.mjs';
 import { parseUpstreamConfig } from '../scripts/upstreams.mjs';
+import { reviewSources } from '../scripts/review-upstreams.mjs';
+import { catalogRoot, loadCatalog } from '../scripts/skills.mjs';
 
-function fixture(t) {
+const wrap = (sources) => 'schemaVersion: 2\nsources:\n' + sources.join('');
+const source = (id, skill, props = {}) =>
+  '  - id: ' + id + '\n    repository: ' + (props.repository ?? 'https://github.com/example-org/' + id) +
+  '\n    branch: ' + (props.branch ?? 'stable') + '\n    license: ' + (props.license ?? 'MIT') +
+  (props.skillsPath ? '\n    skillsPath: ' + props.skillsPath : '') +
+  (props.licensePath ? '\n    licensePath: ' + props.licensePath : '') +
+  '\n    skills:\n      - ' + skill + '\n';
+
+function fixture(t, id = 'synthetic-upstream', skill = 'demo-example', overrides = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'flyver-upstream-fixture-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const repo = join(dir, 'git');
   const dest = join(dir, 'vendor');
-  const docs = join(repo, 'skills', 'demo-example');
+  const config = parseUpstreamConfig(wrap([source(id, skill, overrides)])).sources[0];
+  const docs = join(repo, config.skillsPath, skill);
   mkdirSync(docs, { recursive: true });
-  mkdirSync(dest);
   const git = (...args) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim();
   git('init', '-q');
   git('config', 'user.email', 'fixture@example.invalid');
   git('config', 'user.name', 'Fixture');
   git('config', 'core.autocrlf', 'false');
-  writeFileSync(join(repo, 'LICENSE'), 'Synthetic license fixture\n');
-  writeFileSync(join(dest, 'LICENSE'), 'Synthetic license fixture\n');
-  writeFileSync(join(dest, 'upstream.json'), JSON.stringify({ commit: '0'.repeat(40), skills: [] }));
-  const writeSkill = (body, version = '1.0.0', name = 'demo-example') => {
+  const license = join(repo, config.licensePath);
+  mkdirSync(dirname(license), { recursive: true });
+  writeFileSync(license, config.license === 'Apache-2.0'
+    ? 'Apache License\nVersion 2.0, January 2004\nSynthetic test notice only\n'
+    : 'MIT License\nSynthetic test notice only\n');
+  const writeSkill = (body, version = '1.0.0', name = skill) => {
     writeFileSync(join(docs, 'SKILL.md'), '---\nname: ' + name + '\ndescription: Demo example.\n' +
       (version === null ? '' : 'metadata:\n  version: "' + version + '"\n') + '---\n' + body + '\n');
   };
   const commit = () => { git('add', '.'); git('commit', '-qm', 'fixture'); return git('rev-parse', 'HEAD'); };
   const readLock = () => JSON.parse(readFileSync(join(dest, 'upstream.json'), 'utf8'));
-  const config = parseUpstreamConfig('schemaVersion: 1\nsource:\n  repository: https://github.com/example-org/synthetic-upstream\n  branch: stable\n  license: MIT\nskills:\n  - demo-example\n');
   const refresh = (sha, policy = config) => refreshSnapshot(repo, sha, dest, policy);
   return { repo, dest, docs, writeSkill, commit, readLock, refresh, config };
 }
@@ -111,19 +122,88 @@ test('an approved package absent or broken in the upstream commit halts without 
 });
 
 test('the YAML policy fails closed on unsafe source, refs, unknown keys or duplicate skills', () => {
-  const config = 'schemaVersion: 1\nsource:\n  repository: https://github.com/example-org/skills\n  branch: release/approved\n  license: MIT\nskills:\n  - demo-example\n';
-  assert.deepEqual(parseUpstreamConfig(config), {
-    repository: 'https://github.com/example-org/skills', branch: 'release/approved', license: 'MIT', skills: ['demo-example'],
+  const config = wrap([source('first', 'demo-example', { branch: 'release/approved' })]);
+  assert.deepEqual(parseUpstreamConfig(config).sources[0], {
+    id: 'first', repository: 'https://github.com/example-org/first', branch: 'release/approved',
+    license: 'MIT', skillsPath: 'skills', licensePath: 'LICENSE', skills: ['demo-example'],
   });
   for (const broken of [
     config.replace('github.com', 'github.com.invalid'),
     config.replace('https://', 'https://some-token@'),
     config.replace('release/approved', 'refs/../escape'),
     config.replace('release/approved', '--config'),
-    config.replace('license: MIT', 'license: BSD-3-Clause'),
-    config.replace('license: MIT', 'license: MIT\n  extra: unsupported'),
-    config + '  - demo-example\n',
-    config.replace('  - demo-example', '  - ../../outside'),
-    config.replace('  - demo-example', '  - *some-alias'),
+    config.replace('license: MIT', 'license: unapproved'),
+    config.replace('license: MIT', 'license: MIT\n    extra: unsupported'),
+    config + '      - demo-example\n',
+    config.replace('      - demo-example', '      - ../../outside'),
+    config.replace('      - demo-example', '      - *some-alias'),
+    wrap([source('first', 'demo-example', { skillsPath: '../../outside' })]),
+    wrap([source('first', 'demo-example'), source('second', 'demo-example')]),
+    wrap([source('first', 'demo-example'), source('first', 'other-example')]),
   ]) assert.throws(() => parseUpstreamConfig(broken), /upstreams.yaml/);
+});
+
+test('reviews two independent sources and only changes the source with approved new content', (t) => {
+  const props = { skillsPath: '.agents/skills', licensePath: 'docs/LICENSE.md', branch: 'release/versioned', license: 'Apache-2.0' };
+  const a = fixture(t, 'source-a', 'first-skill');
+  const b = fixture(t, 'source-b', 'second-skill', props);
+  const config = parseUpstreamConfig(wrap([source('source-a', 'first-skill'), source('source-b', 'second-skill', props)]));
+  const vendors = join(dirname(a.dest), 'snapshots');
+  mkdirSync(vendors);
+  const targetA = join(vendors, a.config.id);
+  const targetB = join(vendors, b.config.id);
+  a.writeSkill('First initial.');
+  b.writeSkill('Second stable.');
+  const a1 = a.commit();
+  const b1 = b.commit();
+  refreshSnapshot(a.repo, a1, targetA, a.config);
+  refreshSnapshot(b.repo, b1, targetB, b.config);
+  const read = (target) => readFileSync(join(target, 'upstream.json'), 'utf8');
+  const bLock = read(targetB);
+  a.writeSkill('First new approved bytes.');
+  const a2 = a.commit();
+  const seen = [];
+  const clones = [];
+  const remote = {
+    head(s) { seen.push([s.repository, s.branch]); return s.id === a.config.id ? a2 : b1; },
+    withRepository(s, cb) { clones.push(s.id); return cb(s.id === a.config.id ? a.repo : b.repo); },
+  };
+  const result = reviewSources(config, { vendors, remote });
+  assert.deepEqual(result.failed, []);
+  assert.deepEqual(seen, [[a.config.repository, a.config.branch], [b.config.repository, b.config.branch]]);
+  assert.deepEqual(clones, ['source-a']);
+  assert.equal(JSON.parse(read(targetA)).commit, a2);
+  assert.equal(read(targetB), bLock);
+  assert.match(result.summary, /Fuente: source-a[\s\S]*contenido cambió/);
+  assert.match(result.summary, /Fuente: source-b[\s\S]*hashes verificados/);
+  const loaded = loadCatalog(catalogRoot, config, vendors);
+  assert.equal(loaded.get('first-skill').sourceId, 'source-a');
+  assert.equal(loaded.get('second-skill').sourceId, 'source-b');
+  assert.match(readFileSync(join(targetB,'LICENSE'),'utf8'), /Apache License/);
+
+  // A failing source does not hide verification of a separate healthy source.
+  const bad = reviewSources(config, { vendors, remote: {
+    head(s) { if (s.id === 'source-a') throw new Error('simulated source outage'); return b1; },
+    withRepository() { throw new Error('unexpected clone'); },
+  }});
+  assert.deepEqual(bad.failed, ['source-a']);
+  assert.match(bad.summary, /simulated source outage/);
+  assert.match(bad.summary, /Fuente: source-b[\s\S]*hashes verificados/);
+  assert.match(bad.summary, /No se publicará un candidato parcial/);
+  mkdirSync(join(vendors,'outsider'));
+  assert.throws(() => loadCatalog(catalogRoot, config, vendors), /sin fuente YAML aprobada/);
+});
+
+test('a shared package license is preserved and a different package notice requires review', (t) => {
+  const f = fixture(t);
+  f.writeSkill('Licensed package.');
+  const relativeLicense = join(f.docs, 'LICENSE');
+  writeFileSync(relativeLicense, readFileSync(join(f.repo, f.config.licensePath)));
+  f.refresh(f.commit());
+  const before = f.readLock();
+  assert.equal(readFileSync(join(f.dest, 'skills', 'demo-example', 'LICENSE'), 'utf8'),
+    readFileSync(join(f.dest, 'LICENSE'), 'utf8'));
+  writeFileSync(relativeLicense, 'Different or unapproved license.');
+  assert.throws(() => f.refresh(f.commit()), /Licencia de paquete diferente/);
+  assert.deepEqual(f.readLock(), before);
 });

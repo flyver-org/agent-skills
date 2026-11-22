@@ -1,11 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { frontmatter, guidePaths, loadCatalog, sha256 } from './skills.mjs';
+import { addVendored, catalogRoot, frontmatter, guidesFor, loadCatalog, sha256, vendorBase } from './skills.mjs';
 import { readUpstreamConfig } from './upstreams.mjs';
 
-const defaultTarget = fileURLToPath(new URL('../vendor/coreyhaines31-marketingskills/', import.meta.url)).replace(/[\\/]$/, '');
 const shaPattern = /^[a-f0-9]{40}$/;
 const skillPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -16,16 +15,16 @@ function snapshotFiles(source, pin, policy) {
     throw new Error('La revisión upstream no es el commit exacto.');
   }
   const approved = new Set(policy.skills);
-  const skillRows = decoder.decode(git(source, 'ls-tree', '-dz', pin + ':skills')).split('\0').filter(Boolean);
+  const skillRows = decoder.decode(git(source, 'ls-tree', '-dz', pin + ':' + policy.skillsPath)).split('\0').filter(Boolean);
   if (skillRows.length > 500) throw new Error('Cantidad de directorios upstream anómala.');
   const available = new Set(skillRows.map((line) => line.split('\t', 2)[1])
     .filter((name) => typeof name === 'string' && skillPattern.test(name) && name.length <= 64));
   const missing = [...approved].filter((name) => !available.has(name));
   if (missing.length) throw new Error('Skills aprobadas ausentes en upstream: ' + missing.join(', '));
   const excluded = [...available].filter((name) => !approved.has(name)).sort();
-  const shared = ['LICENSE', ...(approved.has('link-building') ? guidePaths : [])];
+  const shared = [policy.licensePath, ...guidesFor(policy)];
   const rows = decoder.decode(git(source, 'ls-tree', '-lrz', pin, '--', ...shared,
-    ...[...approved].map((name) => 'skills/' + name))).split('\0').filter(Boolean);
+    ...[...approved].map((name) => policy.skillsPath + '/' + name))).split('\0').filter(Boolean);
   if (!rows.length || rows.length > 1000) throw new Error('Cantidad de archivos upstream anómala.');
   const result = new Map();
   let bytes = 0;
@@ -34,7 +33,7 @@ function snapshotFiles(source, pin, policy) {
     if (!record) throw new Error('El snapshot contiene un archivo especial o ruta inválida.');
     const [, , blob, size, path] = record;
     if (!path.split('/').every((part) =>
-      /^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(part) && !part.endsWith('.') &&
+      /^(?:\.(?:agents|claude)|[A-Za-z0-9][A-Za-z0-9_.-]*)$/.test(part) && !part.endsWith('.') &&
       !/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part))) {
       throw new Error('Ruta upstream no portable: ' + path);
     }
@@ -43,7 +42,11 @@ function snapshotFiles(source, pin, policy) {
     const data = git(source, 'cat-file', 'blob', blob);
     if (data.length !== Number(size) || data.includes(0)) throw new Error('Blobs inesperados en el snapshot.');
     decoder.decode(data); // The external catalog is text, never execute it.
-    result.set(path, data);
+    const normalized = path === policy.licensePath ? 'LICENSE'
+      : path.startsWith(policy.skillsPath + '/') ? 'skills/' + path.slice(policy.skillsPath.length + 1)
+      : path;
+    if (result.has(normalized)) throw new Error('Ruta externa duplicada: ' + normalized);
+    result.set(normalized, data);
   }
   return { data: result, excluded };
 }
@@ -70,8 +73,7 @@ function createLock(data, pin, policy) {
     skills[name] = { version, commit: pin, sha256: Object.fromEntries(files.map((path) =>
       [path.slice(dir.length), sha256(data.get(path))])) };
   }
-  const shared = ['LICENSE', ...(names.has('link-building') ? guidePaths : [])];
-  for (const path of guidePaths.filter((p) => !shared.includes(p))) data.delete(path);
+  const shared = ['LICENSE', ...guidesFor(policy)];
   const sharedSha256 = Object.fromEntries(shared.map((path) => {
     if (!data.has(path)) throw new Error('Falta el archivo compartido upstream: ' + path);
     return [path, sha256(data.get(path))];
@@ -79,8 +81,8 @@ function createLock(data, pin, policy) {
   return { schemaVersion: 2, repository: policy.repository, commit: pin, license: policy.license, skills, sharedSha256 };
 }
 
-function summarize(before, after, excluded, unchanged) {
-  const lines = ['Commit instalado: ' + before.commit, 'Commit revisado: ' + after.commit, '', '### Revisión por skill aprobada', ''];
+function summarize(before, after, excluded, unchanged, id) {
+  const lines = ['## Fuente: ' + id, '', 'Commit instalado: ' + before.commit, 'Commit revisado: ' + after.commit, '', '### Revisión por skill aprobada', ''];
   const oldNames = Array.isArray(before.skills) ? before.skills : Object.keys(before.skills);
   const names = [...new Set([...oldNames, ...Object.keys(after.skills)])].sort();
   for (const name of names) {
@@ -109,20 +111,23 @@ function comparable(lock) {
   });
 }
 
-export function refreshSnapshot(source, pin, target = defaultTarget, policy = readUpstreamConfig()) {
+export function refreshSnapshot(source, pin, target, policy) {
   if (!shaPattern.test(pin ?? '')) throw new Error('Indica un SHA de commit completo de 40 caracteres.');
   const destination = resolve(target);
-  const before = JSON.parse(readFileSync(join(destination, 'upstream.json'), 'utf8'));
+  const haveSnapshot = existsSync(destination);
+  if (haveSnapshot && !lstatSync(destination).isDirectory()) throw new Error('Ruta de snapshot no segura.');
+  const before = haveSnapshot ? JSON.parse(readFileSync(join(destination, 'upstream.json'), 'utf8'))
+    : { commit: 'sin snapshot previo', skills: [] };
   const { data, excluded } = snapshotFiles(resolve(source), pin, policy);
   // A license change is intentionally not self-approved by the scheduled job.
-  if (!data.get('LICENSE')?.equals(readFileSync(join(destination, 'LICENSE')))) {
+  if (haveSnapshot && !data.get('LICENSE')?.equals(readFileSync(join(destination, 'LICENSE')))) {
     throw new Error('La licencia upstream cambió. Hace falta una revisión manual.');
   }
   const lock = createLock(data, pin, policy);
-  const catalog = fileURLToPath(new URL('../skills/', import.meta.url));
+  const ownCatalog = () => loadCatalog(catalogRoot, null);
   if (comparable(before) === comparable(lock)) {
-    loadCatalog(catalog, destination, policy);
-    return summarize(before, lock, excluded, true);
+    addVendored(ownCatalog(), destination, policy);
+    return summarize(before, lock, excluded, true, policy.id);
   }
   const scratch = mkdtempSync(join(dirname(destination), '.vendor-refresh-'));
   const candidate = join(scratch, 'candidate');
@@ -136,12 +141,14 @@ export function refreshSnapshot(source, pin, target = defaultTarget, policy = re
       writeFileSync(file, value, { flag: 'wx', mode: 0o644 });
     }
     writeFileSync(join(candidate, 'upstream.json'), JSON.stringify(lock, null, 2) + '\n');
-    loadCatalog(catalog, candidate, policy);
-    renameSync(destination, backup);
-    savedOriginal = true;
+    addVendored(ownCatalog(), candidate, policy);
+    if (haveSnapshot) {
+      renameSync(destination, backup);
+      savedOriginal = true;
+    }
     renameSync(candidate, destination);
     savedOriginal = false;
-    return summarize(before, lock, excluded, false);
+    return summarize(before, lock, excluded, false, policy.id);
   } catch (err) {
     if (savedOriginal) {
       try { renameSync(backup, destination); savedOriginal = false; }
@@ -155,9 +162,13 @@ export function refreshSnapshot(source, pin, target = defaultTarget, policy = re
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   try {
-    const [source, pin, ...extra] = process.argv.slice(2);
-    if (!source || !pin || extra.length) throw new Error('Uso: node scripts/refresh-upstream.mjs <clon-upstream> <sha>');
-    console.log(refreshSnapshot(source, pin));
+    const [id, source, pin, ...extra] = process.argv.slice(2);
+    if (!id || !source || !pin || extra.length) {
+      throw new Error('Uso: node scripts/refresh-upstream.mjs <id-origen> <clon-upstream> <sha>');
+    }
+    const policy = readUpstreamConfig().sources.find((entry) => entry.id === id);
+    if (!policy) throw new Error('Fuente no listada en upstreams.yaml: ' + id);
+    console.log(refreshSnapshot(source, pin, join(vendorBase, id), policy));
   } catch (err) {
     console.error(err.message);
     process.exitCode = 1;

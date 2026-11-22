@@ -1,4 +1,4 @@
-name: Review upstream marketing skills
+name: Review upstream skills
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: upstream-marketing-review
+  group: upstream-skills-review
   cancel-in-progress: false
 
 jobs:
@@ -19,8 +19,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       changed: ${{ steps.prepare.outputs.changed }}
-      sha: ${{ steps.detect.outputs.sha }}
-      base: ${{ steps.detect.outputs.base }}
+      base: ${{ steps.prepare.outputs.base }}
       patch_sha256: ${{ steps.prepare.outputs.patch_sha256 }}
     steps:
       # Always run the trusted default-branch scripts, including on manual dispatch.
@@ -31,76 +30,43 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24'
-      - name: Read YAML policy and verify approved snapshot
-        id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-          metadata=$(node scripts/upstreams.mjs source)
-          IFS=$'\t' read -r repository branch <<< "$metadata"
-          # The policy parser only accepts public HTTPS GitHub URLs and valid branch syntax.
-          if ! node scripts/skills.mjs audit-upstream > "$RUNNER_TEMP/approved-audit.md"; then
-            echo 'El snapshot aprobado no coincide con el YAML o el lock.' >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          sha=$(git ls-remote --exit-code "$repository.git" "refs/heads/$branch" | awk '{print $1}')
-          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid upstream commit'; exit 1; }
-          pinned=$(node --input-type=module -e "import fs from 'node:fs'; console.log(JSON.parse(fs.readFileSync('vendor/coreyhaines31-marketingskills/upstream.json','utf8')).commit)")
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "repository=$repository" >> "$GITHUB_OUTPUT"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          if [[ "$sha" == "$pinned" ]]; then
-            echo 'new_commit=false' >> "$GITHUB_OUTPUT"
-            echo "La revisión upstream aprobada sigue en $sha." >> "$GITHUB_STEP_SUMMARY"
-            cat "$RUNNER_TEMP/approved-audit.md" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo 'new_commit=true' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Prepare data-only candidate with trusted repository script
+      - name: Review configured sources and prepare a data-only candidate
         id: prepare
-        if: steps.detect.outputs.new_commit == 'true'
-        env:
-          UPSTREAM_SHA: ${{ steps.detect.outputs.sha }}
-          UPSTREAM_REPOSITORY: ${{ steps.detect.outputs.repository }}
-          UPSTREAM_BRANCH: ${{ steps.detect.outputs.branch }}
         shell: bash
         run: |
           set -euo pipefail
+          echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           mkdir -p "$RUNNER_TEMP/upstream-review"
-          # No credentials, submodules, working-tree checkout, hooks or upstream code execution.
-          git -c core.hooksPath=/dev/null clone --no-checkout --single-branch --depth=1 \
-            --branch "$UPSTREAM_BRANCH" "$UPSTREAM_REPOSITORY.git" "$RUNNER_TEMP/marketing-upstream"
-          git -C "$RUNNER_TEMP/marketing-upstream" cat-file -e "$UPSTREAM_SHA^{commit}"
-          if ! node scripts/refresh-upstream.mjs "$RUNNER_TEMP/marketing-upstream" "$UPSTREAM_SHA" \
-            2>&1 | tee "$RUNNER_TEMP/upstream-review/review.md"; then
+          if ! node scripts/review-upstreams.mjs 2>&1 | tee "$RUNNER_TEMP/upstream-review/review.md"; then
             cat "$RUNNER_TEMP/upstream-review/review.md" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-          git add -- vendor/coreyhaines31-marketingskills
-          if git diff --cached --quiet -- vendor/coreyhaines31-marketingskills; then
+          npm run check
+          node scripts/upstreams.mjs vendor-roots > "$RUNNER_TEMP/upstream-approved-roots"
+          mapfile -t approved < "$RUNNER_TEMP/upstream-approved-roots"
+          git add -- "${approved[@]}"
+          if git diff --cached --quiet -- "${approved[@]}"; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"
             cat "$RUNNER_TEMP/upstream-review/review.md" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           echo 'changed=true' >> "$GITHUB_OUTPUT"
           printf '\n## Diff summary\n\n```text\n' >> "$RUNNER_TEMP/upstream-review/review.md"
-          git diff --cached --stat -- vendor/coreyhaines31-marketingskills >> "$RUNNER_TEMP/upstream-review/review.md"
+          git diff --cached --stat -- "${approved[@]}" >> "$RUNNER_TEMP/upstream-review/review.md"
           printf '\n```\n\nManual review required. No automatic merge or installation.\n' >> "$RUNNER_TEMP/upstream-review/review.md"
-          git diff --cached --binary -- vendor/coreyhaines31-marketingskills > "$RUNNER_TEMP/upstream-review/candidate.patch"
+          git diff --cached --binary -- "${approved[@]}" > "$RUNNER_TEMP/upstream-review/candidate.patch"
           echo "patch_sha256=$(sha256sum "$RUNNER_TEMP/upstream-review/candidate.patch" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           cat "$RUNNER_TEMP/upstream-review/review.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Validate candidate without installing upstream dependencies
         if: steps.prepare.outputs.changed == 'true'
         run: |
-          npm run check
           npm test
       # Always retain the candidate, including failed validation. Publish requires success.
       - name: Save candidate and review summary
-        if: always() && steps.detect.outputs.new_commit == 'true'
+        if: always() && (steps.prepare.outputs.changed == 'true' || failure())
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: upstream-${{ steps.detect.outputs.sha }}
+          name: upstream-review
           path: ${{ runner.temp }}/upstream-review/
           if-no-files-found: warn
           retention-days: 30
@@ -121,13 +87,12 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: upstream-${{ needs.candidate.outputs.sha }}
+          name: upstream-review
           path: ${{ runner.temp }}/upstream-review
       - name: Propose a draft, or leave an artifact for manual review
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          UPSTREAM_SHA: ${{ needs.candidate.outputs.sha }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           PATCH_SHA256: ${{ needs.candidate.outputs.patch_sha256 }}
         shell: bash
@@ -138,35 +103,44 @@ jobs:
             echo 'Could not create the draft PR with the repository token. No repository settings were changed. Download the candidate patch and version summary from this run’s artifact; inspect it before applying.' >> "$GITHUB_STEP_SUMMARY"
           }
           propose() {
-            [[ "$UPSTREAM_SHA" =~ ^[0-9a-f]{40}$ ]] || return 1
             [[ "$PATCH_SHA256" =~ ^[0-9a-f]{64}$ ]] || return 1
             printf '%s  %s\n' "$PATCH_SHA256" "$RUNNER_TEMP/upstream-review/candidate.patch" | sha256sum --check --status || return 1
-            branch="automation/marketing-upstream-$UPSTREAM_SHA"
-            # Closed or merged PRs count too: do not reopen rejected versions every week.
+            branch="automation/skills-upstream-$PATCH_SHA256"
+            # Closed or merged PRs count too: do not reopen rejected candidates every week.
             existing=$(gh pr list --state all --head "$branch" --json url --jq '.[0].url // empty') || return 1
             if [[ -n "$existing" ]]; then
-              echo "This SHA already has a review: $existing" >> "$GITHUB_STEP_SUMMARY"
+              echo "This candidate already has a review: $existing" >> "$GITHUB_STEP_SUMMARY"
               return 0
             fi
-            remote=$(git ls-remote --heads origin "refs/heads/$branch") || return 1
-            if [[ -z "$remote" ]]; then
-              git switch -c "$branch" || return 1
-              git apply --index "$RUNNER_TEMP/upstream-review/candidate.patch" || return 1
-              # The publication job must never commit anything outside the vendor snapshot.
-              while IFS= read -r -d '' file; do
-                [[ "$file" == vendor/coreyhaines31-marketingskills/* ]] || return 1
-              done < <(git diff --cached --name-only -z)
-              git diff --cached --quiet && return 1
-              git -c user.name='github-actions[bot]' \
-                -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-                -c core.hooksPath=/dev/null commit -m "Review marketing upstream $UPSTREAM_SHA" || return 1
-              # Ephemeral HTTP auth; never persist credentials or force-push a review branch.
-              auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
-              git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
-                -c core.hooksPath=/dev/null push origin "HEAD:refs/heads/$branch" || return 1
+            # Private repositories need the same ephemeral credentials for the read and push.
+            auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+            remote=$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+              ls-remote --heads origin "refs/heads/$branch") || return 1
+            if [[ -n "$remote" ]]; then
+              echo 'The review branch already exists without a known PR; verify it manually.' >> "$GITHUB_STEP_SUMMARY"
+              return 1
             fi
+            git switch -c "$branch" || return 1
+            # Read allowlisted paths from the trusted base checkout, not from the patch.
+            node scripts/upstreams.mjs vendor-roots > "$RUNNER_TEMP/upstream-approved-roots" || return 1
+            mapfile -t approved < "$RUNNER_TEMP/upstream-approved-roots" || return 1
+            git apply --index "$RUNNER_TEMP/upstream-review/candidate.patch" || return 1
+            while IFS= read -r -d '' file; do
+              allowed=false
+              for root in "${approved[@]}"; do
+                if [[ "$file" == "$root/"* ]]; then allowed=true; break; fi
+              done
+              [[ "$allowed" == true ]] || return 1
+            done < <(git diff --cached --no-renames --name-only -z)
+            git diff --cached --quiet && return 1
+            git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              -c core.hooksPath=/dev/null commit -m "Review upstream skills ${PATCH_SHA256:0:12}" || return 1
+            # Ephemeral HTTP auth; never persist credentials or force-push a review branch.
+            git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+              -c core.hooksPath=/dev/null push origin "HEAD:refs/heads/$branch" || return 1
             url=$(gh pr create --draft --base "$DEFAULT_BRANCH" --head "$branch" \
-              --title "Review marketing upstream ${UPSTREAM_SHA:0:12}" \
+              --title "Review upstream skills ${PATCH_SHA256:0:12}" \
               --body-file "$RUNNER_TEMP/upstream-review/review.md") || return 1
             echo "Draft review created: $url. Human approval and merge are required." >> "$GITHUB_STEP_SUMMARY"
           }
