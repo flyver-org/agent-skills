@@ -1,6 +1,8 @@
 ---
 name: flyver-revision-visual
 description: Revisa una interfaz o prototipo concreto, su jerarquía y comportamiento móvil. Úsala para QA visual con capturas o evidencia interactiva, no como sustituto de una auditoría completa.
+metadata:
+  version: "1.0.0"
 ---
 
 # Revisión visual

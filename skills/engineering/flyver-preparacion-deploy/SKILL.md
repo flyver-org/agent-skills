@@ -1,6 +1,8 @@
 ---
 name: flyver-preparacion-deploy
 description: Prepara o diagnostica el despliegue de una aplicación sin mezclar compilación, arranque y recuperación. Úsala para revisar cambios y evidencia antes de desplegar.
+metadata:
+  version: "1.0.0"
 ---
 
 # Preparación y diagnóstico de despliegue

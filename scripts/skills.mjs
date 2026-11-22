@@ -7,6 +7,10 @@ const catalogRoot = fileURLToPath(new URL('../skills/', import.meta.url));
 const vendorRoot = fileURLToPath(new URL('../vendor/coreyhaines31-marketingskills/', import.meta.url));
 const slug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const validName = (value) => slug.test(value) && value.length <= 64;
+export const upstream = 'https://github.com/coreyhaines31/marketingskills';
+export const guidePaths = ['ahrefs', 'dataforseo', 'exa', 'firecrawl', 'hunter', 'semrush']
+  .map((name) => 'tools/integrations/' + name + '.md');
+export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 function statIfPresent(path) {
   try { return lstatSync(path); }
@@ -32,7 +36,7 @@ function assertPlainTree(path) {
 
 function directories(path) {
   assertDirectory(path);
-  return readdirSync(path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))
+  return readdirSync(path, { withFileTypes: true }).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
     .map((entry) => {
       if (!entry.isDirectory() || !validName(entry.name)) {
         throw new Error(`Directorio de catálogo inválido: ${join(path, entry.name)}`);
@@ -41,15 +45,16 @@ function directories(path) {
     });
 }
 
-function readSkill(category, name, folder, license) {
-  assertPlainTree(folder);
-  const file = join(folder, 'SKILL.md');
-  if (!statIfPresent(file)?.isFile()) throw new Error(`Falta SKILL.md: ${folder}`);
-  const raw = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
-  const match = /^---\n([^]*?)\n---\n([^]+)$/.exec(raw);
+export function frontmatter(raw, file) {
+  const match = /^---\n([^]*?)\n---\n([^]+)$/.exec(raw.replace(/\r\n/g, '\n'));
   if (!match || !match[2].trim()) throw new Error(`Frontmatter o instrucciones inválidos: ${file}`);
   const fields = new Map();
-  const metadata = license ? match[1].replace(/\nmetadata:\n  version: [0-9]+(?:\.[0-9]+)*$/, '') : match[1];
+  const parsed = /\nmetadata:\n  version: (?:"([^"\r\n]+)"|([^\s\r\n]+))$/.exec(match[1]);
+  const version = parsed ? parsed[1] ?? parsed[2] : null;
+  if (version !== null && !/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:[-+][0-9A-Za-z.+-]+)?$/.test(version)) {
+    throw new Error(`Versión no válida: ${file}`);
+  }
+  const metadata = parsed ? match[1].slice(0, parsed.index) : match[1];
   for (const line of metadata.split('\n')) {
     const pair = /^(name|description): (.+)$/.exec(line);
     if (!pair || fields.has(pair[1])) throw new Error(`Metadata inválida o duplicada: ${file}`);
@@ -64,51 +69,85 @@ function readSkill(category, name, folder, license) {
     }
     fields.set(pair[1], value);
   }
-  const description = fields.get('description');
-  if (fields.get('name') !== name || !description?.trim() || [...description].length > 1024) {
+  return { name: fields.get('name'), description: fields.get('description'), version, body: match[2] };
+}
+
+function readSkill(category, name, folder, provenance) {
+  assertPlainTree(folder);
+  const file = join(folder, 'SKILL.md');
+  if (!statIfPresent(file)?.isFile()) throw new Error(`Falta SKILL.md: ${folder}`);
+  const metadata = frontmatter(readFileSync(file, 'utf8'), file);
+  const { description, version, body } = metadata;
+  if (metadata.name !== name || !description?.trim() || [...description].length > 1024) {
     throw new Error(`El nombre debe coincidir con la carpeta y description debe tener entre 1 y 1024 caracteres: ${file}`);
   }
-  for (const link of match[2].matchAll(/\]\(([^)\s]+)\)/g)) {
+  for (const link of body.matchAll(/\]\(([^)\s]+)\)/g)) {
     const target = link[1];
     if (/^(https?:\/\/|mailto:|#)/.test(target)) continue;
+    // Exact upstream-only exceptions: a website example and six shared, lock-verified guides.
+    if (provenance && name === 'site-architecture' && target === '/features/analytics') continue;
+    if (provenance && name === 'link-building' && guidePaths.some((path) => target === '../../' + path)) continue;
     const path = resolve(folder, decodeURIComponent(target.split('#')[0]));
     const inside = relative(folder, path);
     if (inside === '..' || inside.startsWith('..' + sep) || isAbsolute(inside) || !statIfPresent(path)) {
       throw new Error(`Referencia local inválida: ${target} en ${file}`);
     }
   }
-  return { category, name, folder, description, license };
+  return { category, name, folder, description, version, ...provenance };
+}
+
+function plainFiles(path) {
+  return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
+    const child = join(path, entry.name);
+    if (entry.isDirectory()) return plainFiles(child);
+    if (!entry.isFile()) throw new Error(`Archivo externo no permitido: ${child}`);
+    return [child];
+  });
+}
+
+function checkHashes(root, paths, hashes) {
+  if (!hashes || Object.keys(hashes).length !== paths.length) throw new Error('Inventario externo no coincide.');
+  for (const file of paths) {
+    const key = relative(root, file).split(sep).join('/');
+    if (hashes[key] !== sha256(readFileSync(file))) throw new Error(`SHA-256 externo distinto: ${key}`);
+  }
 }
 
 function addVendored(catalog, root) {
   assertDirectory(root);
   assertPlainTree(root);
   const manifest = JSON.parse(readFileSync(join(root, 'upstream.json'), 'utf8'));
-  if (manifest.repository !== 'https://github.com/coreyhaines31/marketingskills' ||
+  if (manifest.schemaVersion !== 2 || manifest.repository !== upstream ||
       !/^[a-f0-9]{40}$/.test(manifest.commit) || manifest.license !== 'MIT') {
-    throw new Error('El origen o licencia externos no coinciden con la política del catálogo.');
+    throw new Error('El formato, origen o licencia externos no coinciden con el catálogo.');
   }
-  const original = new Set(['LICENSE']);
   const contained = join(root, 'skills');
   const names = directories(contained);
-  if (JSON.stringify(names) !== JSON.stringify(manifest.skills)) throw new Error('Lista externa no coincide.');
-  const license = join(root, 'LICENSE');
-  const collect = (path) => {
-    for (const entry of readdirSync(path, { withFileTypes: true })) {
-      const child = join(path, entry.name);
-      if (entry.isDirectory()) collect(child);
-      else original.add(relative(root, child).split(sep).join('/'));
-    }
-  };
-  collect(contained);
-  if (Object.keys(manifest.sha256).length !== original.size) throw new Error('Inventario externo no coincide.');
-  for (const file of original) {
-    const hash = createHash('sha256').update(readFileSync(join(root, file))).digest('hex');
-    if (manifest.sha256[file] !== hash) throw new Error(`SHA-256 externo distinto: ${file}`);
+  if (!names.length || JSON.stringify(names) !== JSON.stringify(Object.keys(manifest.skills).sort())) {
+    throw new Error('Lista externa no coincide.');
   }
+  const sharedPaths = ['LICENSE', ...(names.includes('link-building') ? guidePaths : [])];
+  const skillsPaths = plainFiles(contained);
+  const wholeTree = new Set(plainFiles(root));
+  for (const p of [...skillsPaths, ...sharedPaths.map((path) => join(root, path)), join(root, 'upstream.json')]) {
+    if (!wholeTree.delete(p)) throw new Error(`Falta archivo externo esperado: ${p}`);
+  }
+  if (wholeTree.size) throw new Error('Hay archivos externos no registrados.');
+  checkHashes(root, sharedPaths.map((path) => join(root, path)), manifest.sharedSha256);
+  const license = join(root, 'LICENSE');
   for (const name of names) {
     if (catalog.has(name)) throw new Error(`Nombre de skill duplicado: ${name}`);
-    catalog.set(name, readSkill('marketing', name, join(contained, name), license));
+    const folder = join(contained, name);
+    const entry = manifest.skills[name];
+    const skill = readSkill('marketing', name, folder, {
+      license, commit: manifest.commit,
+      guides: name === 'link-building' ? guidePaths.map((path) => ({ path, source: join(root, path) })) : [],
+    });
+    if (skill.version !== entry?.version || entry.commit !== manifest.commit) {
+      throw new Error(`Versión o commit externo distinto en el lock: ${name}`);
+    }
+    checkHashes(folder, plainFiles(folder), entry.sha256);
+    catalog.set(name, skill);
   }
 }
 
@@ -148,15 +187,23 @@ function install(catalog, args) {
   assertDirectory(target);
   const agents = join(realpathSync(target), agentDir);
   const destination = join(agents, 'skills');
-  for (const directory of [agents, destination]) {
+  const guides = selected.flatMap((skill) => skill.guides ?? []);
+  const paths = [agents, destination, ...(guides.length ? [join(agents, 'tools'), join(agents, 'tools', 'integrations')] : [])];
+  for (const directory of paths) {
     if (statIfPresent(directory)) assertDirectory(directory);
   }
   for (const skill of selected) {
     if (statIfPresent(join(destination, skill.name))) throw new Error(`No se sobrescribirá: ${skill.name}`);
   }
-  for (const directory of [agents, destination]) {
+  for (const { path } of guides) {
+    if (statIfPresent(join(agents, path))) throw new Error(`No se sobrescribirá: ${path}`);
+  }
+  for (const directory of paths) {
     if (!statIfPresent(directory)) mkdirSync(directory);
     assertDirectory(directory);
+  }
+  for (const { path, source } of guides) {
+    cpSync(source, join(agents, path), { force: false, errorOnExist: true });
   }
   for (const skill of selected) {
     const folder = join(destination, skill.name);
@@ -176,11 +223,17 @@ function main([command, ...args]) {
   } else if (command === 'list' && args.length <= 1) {
     const rows = [...catalog.values()].filter((s) => !args.length || args[0] === s.category);
     if (!rows.length) throw new Error(`Tema desconocido: ${args[0]}`);
-    for (const { category, name, description } of rows) console.log(`${category}/${name} | ${description}`);
+    for (const { category, name, description, version } of rows) {
+      console.log(`${category}/${name} @ ${version ?? 'sin versión declarada'} | ${description}`);
+    }
+  } else if (command === 'version' && args.length === 1) {
+    const skill = catalog.get(args[0]);
+    if (!skill) throw new Error(`Skill desconocida: ${args[0]}`);
+    console.log(`${skill.name}: ${skill.version ?? 'sin versión declarada'} (${skill.commit ?? 'Flyver'})`);
   } else if (command === 'install') {
     install(catalog, args);
   } else {
-    throw new Error('Uso: validate | list [tema] | install --target <proyecto> [--agent codex|claude-code] <skill>...');
+    throw new Error('Uso: validate | list [tema] | version <skill> | install --target <proyecto> [--agent codex|claude-code] <skill>...');
   }
 }
 

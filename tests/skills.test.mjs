@@ -117,3 +117,33 @@ test('validator rejects vendored content that differs from the lock', (t) => {
   writeFileSync(path, readFileSync(path, 'utf8') + '\nAlterado.\n');
   assert.throws(() => loadCatalog(catalog, copy), /SHA-256 externo distinto/);
 });
+
+test('full catalogue reports pinned and original versions', () => {
+  const catalog = loadCatalog();
+  const manifest = JSON.parse(readFileSync(new URL('../vendor/coreyhaines31-marketingskills/upstream.json', import.meta.url), 'utf8'));
+  assert.equal([...catalog.values()].filter((s) => s.commit).length, Object.keys(manifest.skills).length);
+  const copy = manifest.skills.copywriting;
+  assert.ok(copy);
+  assert.equal(run('version', 'copywriting').stdout.trim(),
+    'copywriting: ' + (copy.version ?? 'sin versión declarada') + ' (' + copy.commit + ')');
+  assert.match(run('version', b2b).stdout, /1\.0\.0 \(Flyver\)/);
+  assert.equal(run('version', 'package-not-found').status, 1);
+});
+
+test('link-building copies only the six shared references to where relative links resolve', (t) => {
+  const target = temp(t);
+  const result = run(...getArgs(target, 'link-building'));
+  assert.equal(result.status, 0, result.stderr);
+  const dest = join(target, '.agents', 'skills', 'link-building', '..', '..', 'tools', 'integrations');
+  assert.deepEqual(readdirSync(dest).sort(), ['ahrefs', 'dataforseo', 'exa', 'firecrawl', 'hunter', 'semrush'].map(x => x + '.md'));
+});
+
+test('link-building never overwrites a shared guide or partially installs on collision', (t) => {
+  const target = temp(t);
+  const guides = join(target, '.claude', 'tools', 'integrations');
+  mkdirSync(guides, { recursive: true });
+  writeFileSync(join(guides, 'hunter.md'), 'keep');
+  assert.notEqual(run(...getArgs(target, '--agent', 'claude-code', b2b, 'link-building')).status, 0);
+  assert.equal(existsSync(join(target, '.claude', 'skills')), false);
+  assert.equal(readFileSync(join(guides, 'hunter.md'), 'utf8'), 'keep');
+});

@@ -4,7 +4,7 @@ Biblioteca de instrucciones reutilizables para agentes. Las fuentes están orden
 
 | Tema | Skills iniciales |
 | --- | --- |
-| [Marketing](skills/marketing/) | Prospección B2B, contenido social y cuatro skills de landing revisadas |
+| [Marketing](skills/marketing/) | Prospección B2B, contenido social y catálogo de marketing upstream |
 | [Design](skills/design/) | Brief de diseño UI, revisión visual |
 | [Video](skills/video/) | Producción de video explicativo |
 | [Engineering](skills/engineering/) | Revisión de cambios, preparación de despliegues |
@@ -17,6 +17,7 @@ Requiere Node.js 22+. No hay dependencias npm ni claves.
 ```sh
 npm run skills -- list
 npm run skills -- list marketing
+npm run skills -- version copywriting
 npm run check
 npm test
 ```
@@ -31,7 +32,13 @@ npm run skills -- install --target "/ruta/a/mi-proyecto" flyver-prospeccion-b2b 
 
 En PowerShell, puedes usar una ruta como `"C:\Proyectos\mi-proyecto"`. Una vez copiada, abre una sesión de Codex en el proyecto e invoca, por ejemplo, `$flyver-prospeccion-b2b`. Revisa el contenido antes de usarlo. La copia es una instantánea, no se actualiza sola. Para actualizarla, revisa diferencias y reemplaza manualmente solo la skill que quieres cambiar.
 
-Para trabajo de landing, consulta las [cuatro skills externas y su revisión fijada](docs/landing-skills.md). Se instalan por nombre con el mismo comando y conservan su licencia MIT.
+Para trabajo de landing, consulta las [cuatro recomendadas](docs/landing-skills.md). Todo el catálogo upstream seleccionado se instala individualmente por nombre, no en bloque, con su licencia MIT. Revisa las instrucciones antes de usarlas y no ejecutes scripts externos al instalar.
+
+## Versiones y mantenimiento
+
+- El campo YAML `metadata.version` en cada `SKILL.md` es la versión declarada por quien mantiene la skill.
+- El [lock upstream](vendor/coreyhaines31-marketingskills/upstream.json) registra la versión declarada (o `null`), el commit exacto y los SHA-256 por archivo. Una versión sin cambios no garantiza contenido idéntico; el informe de revisión compara también los hashes.
+- El workflow semanal y manual compara el upstream, valida un candidato y propone un PR draft cuando el token existente tiene permiso. Si no puede crearlo, conserva un resumen y patch como artefacto, sin cambiar permisos ni fusionar ni instalar nada. Un reporte de upstream no indica que tus copias locales se hayan actualizado.
 
 Otros agentes pueden usar el paquete estándar `SKILL.md` en su ruta de descubrimiento correspondiente; no se han configurado cuentas ni instalado agentes externos.
 

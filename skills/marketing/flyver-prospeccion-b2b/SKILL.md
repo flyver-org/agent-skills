@@ -1,6 +1,8 @@
 ---
 name: flyver-prospeccion-b2b
 description: Investiga y prioriza empresas para prospección B2B con evidencia pública. Úsala para crear listas de cuentas y preparar propuestas de primer contacto, no para enviar campañas.
+metadata:
+  version: "1.0.0"
 ---
 
 # Prospección B2B
