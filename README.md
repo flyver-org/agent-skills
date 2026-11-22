@@ -36,9 +36,10 @@ Para trabajo de landing, consulta las [cuatro recomendadas](docs/landing-skills.
 
 ## Versiones y mantenimiento
 
+- [`upstreams.yaml`](upstreams.yaml) es la política que revisamos por PR: repositorio público, rama, licencia y nombres aprobados. No contiene secretos ni versiones duplicadas.
 - El campo YAML `metadata.version` en cada `SKILL.md` es la versión declarada por quien mantiene la skill.
 - El [lock upstream](vendor/coreyhaines31-marketingskills/upstream.json) registra la versión declarada (o `null`), el commit exacto y los SHA-256 por archivo. Una versión sin cambios no garantiza contenido idéntico; el informe de revisión compara también los hashes.
-- El workflow semanal y manual compara el upstream, valida un candidato y propone un PR draft cuando el token existente tiene permiso. Si no puede crearlo, conserva un resumen y patch como artefacto, sin cambiar permisos ni fusionar ni instalar nada. Un reporte de upstream no indica que tus copias locales se hayan actualizado.
+- El workflow semanal y manual lee el YAML, consulta la rama una vez y muestra el estado de cada skill aprobada. Si solo aparecen skills no aprobadas o no cambian los archivos seleccionados, lo registra sin cambiar el lock ni abrir PR. Si hay cambios aprobados, valida un candidato y propone un PR draft cuando el token existente tiene permiso. Si no puede crearlo, conserva un resumen y patch como artefacto, sin cambiar permisos ni fusionar ni instalar nada. Un reporte de upstream no indica que tus copias locales se hayan actualizado.
 
 Otros agentes pueden usar el paquete estándar `SKILL.md` en su ruta de descubrimiento correspondiente; no se han configurado cuentas ni instalado agentes externos.
 

@@ -1,6 +1,6 @@
 # Landing: cuatro skills externas
 
-Fuente: [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills). El [lock de origen](../vendor/coreyhaines31-marketingskills/upstream.json) es la referencia para el commit instalado, la versión declarada y los SHA-256 de cada paquete y archivo. El catálogo conserva la [licencia MIT](../vendor/coreyhaines31-marketingskills/LICENSE) y los archivos originales, incluidas referencias y evaluaciones. Los scripts externos no se ejecutan durante la actualización, validación o instalación.
+Fuente: [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills). La [configuración YAML](../upstreams.yaml) indica qué repositorio, rama y nombres se revisan. El [lock de origen](../vendor/coreyhaines31-marketingskills/upstream.json) es la referencia para el commit instalado, la versión declarada y los SHA-256 de cada paquete y archivo. El catálogo conserva la [licencia MIT](../vendor/coreyhaines31-marketingskills/LICENSE) y los archivos originales, incluidas referencias y evaluaciones. Los scripts externos no se ejecutan durante la actualización, validación o instalación.
 
 | Skill | Cuándo usarla |
 | --- | --- |
@@ -23,7 +23,7 @@ Esta selección no instala las demás skills que recomienda upstream. No añadas
 ## Actualizar por PR
 
 1. En un clon separado del repositorio upstream, sin checkout, identifica y revisa el SHA exacto nuevo y el diff. Revisa el contenido, las dependencias y la licencia; no ejecutes nada del clon.
-2. En la rama de revisión del catálogo, ejecuta `node scripts/refresh-upstream.mjs <clon-upstream> <sha-completo>`. Importa las skills y las referencias compartidas conocidas, calcula el lock y compara versiones y hashes contra el snapshot anterior. Un cambio de licencia o enlace no soportado requiere revisión manual.
+2. En la rama de revisión del catálogo, ejecuta `node scripts/refresh-upstream.mjs <clon-upstream> <sha-completo>`. Comprueba una por una las skills listadas en el YAML y las referencias compartidas conocidas. Si solo cambia el SHA upstream pero no cambia ningún archivo aprobado, conserva el lock anterior. Las skills nuevas no listadas se reportan sin importarlas. Una skill aprobada que ya no existe, un cambio de licencia o un enlace no soportado detiene el candidato para revisión manual.
 3. Corre `npm run check` y `npm test`; revisa el diff del PR y prueba un brief y una página ficticia. El workflow semanal/manual ya prepara candidato y resumen; si el token no permite crear el borrador, usa el patch de la ejecución para revisión manual. Nunca habilita automerge ni actualiza instalaciones locales.
 
 La skill `link-building` instala seis guías MIT compartidas bajo `.agents/tools/integrations/` o `.claude/tools/integrations/`. El instalador conserva los enlaces relativos y se detiene antes de escribir si detecta una colisión.

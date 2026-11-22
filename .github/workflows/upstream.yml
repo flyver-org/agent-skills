@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      changed: ${{ steps.detect.outputs.changed }}
+      changed: ${{ steps.prepare.outputs.changed }}
       sha: ${{ steps.detect.outputs.sha }}
       base: ${{ steps.detect.outputs.base }}
       patch_sha256: ${{ steps.prepare.outputs.patch_sha256 }}
@@ -31,38 +31,59 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24'
-      - name: Detect public upstream HEAD without checking it out
+      - name: Read YAML policy and verify approved snapshot
         id: detect
         shell: bash
         run: |
           set -euo pipefail
-          sha=$(git ls-remote https://github.com/coreyhaines31/marketingskills.git HEAD | awk '{print $1}')
+          metadata=$(node scripts/upstreams.mjs source)
+          IFS=$'\t' read -r repository branch <<< "$metadata"
+          # The policy parser only accepts public HTTPS GitHub URLs and valid branch syntax.
+          if ! node scripts/skills.mjs audit-upstream > "$RUNNER_TEMP/approved-audit.md"; then
+            echo 'El snapshot aprobado no coincide con el YAML o el lock.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          sha=$(git ls-remote --exit-code "$repository.git" "refs/heads/$branch" | awk '{print $1}')
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid upstream commit'; exit 1; }
           pinned=$(node --input-type=module -e "import fs from 'node:fs'; console.log(JSON.parse(fs.readFileSync('vendor/coreyhaines31-marketingskills/upstream.json','utf8')).commit)")
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "repository=$repository" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
           if [[ "$sha" == "$pinned" ]]; then
-            echo 'changed=false' >> "$GITHUB_OUTPUT"
-            echo "Upstream is already pinned at $sha. Nothing to review." >> "$GITHUB_STEP_SUMMARY"
+            echo 'new_commit=false' >> "$GITHUB_OUTPUT"
+            echo "La revisión upstream aprobada sigue en $sha." >> "$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/approved-audit.md" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo 'changed=true' >> "$GITHUB_OUTPUT"
+            echo 'new_commit=true' >> "$GITHUB_OUTPUT"
           fi
       - name: Prepare data-only candidate with trusted repository script
         id: prepare
-        if: steps.detect.outputs.changed == 'true'
+        if: steps.detect.outputs.new_commit == 'true'
         env:
           UPSTREAM_SHA: ${{ steps.detect.outputs.sha }}
+          UPSTREAM_REPOSITORY: ${{ steps.detect.outputs.repository }}
+          UPSTREAM_BRANCH: ${{ steps.detect.outputs.branch }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/upstream-review"
           # No credentials, submodules, working-tree checkout, hooks or upstream code execution.
           git -c core.hooksPath=/dev/null clone --no-checkout --single-branch --depth=1 \
-            https://github.com/coreyhaines31/marketingskills.git "$RUNNER_TEMP/marketing-upstream"
+            --branch "$UPSTREAM_BRANCH" "$UPSTREAM_REPOSITORY.git" "$RUNNER_TEMP/marketing-upstream"
           git -C "$RUNNER_TEMP/marketing-upstream" cat-file -e "$UPSTREAM_SHA^{commit}"
-          node scripts/refresh-upstream.mjs "$RUNNER_TEMP/marketing-upstream" "$UPSTREAM_SHA" \
-            | tee "$RUNNER_TEMP/upstream-review/review.md"
+          if ! node scripts/refresh-upstream.mjs "$RUNNER_TEMP/marketing-upstream" "$UPSTREAM_SHA" \
+            2>&1 | tee "$RUNNER_TEMP/upstream-review/review.md"; then
+            cat "$RUNNER_TEMP/upstream-review/review.md" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           git add -- vendor/coreyhaines31-marketingskills
+          if git diff --cached --quiet -- vendor/coreyhaines31-marketingskills; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            cat "$RUNNER_TEMP/upstream-review/review.md" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
           printf '\n## Diff summary\n\n```text\n' >> "$RUNNER_TEMP/upstream-review/review.md"
           git diff --cached --stat -- vendor/coreyhaines31-marketingskills >> "$RUNNER_TEMP/upstream-review/review.md"
           printf '\n```\n\nManual review required. No automatic merge or installation.\n' >> "$RUNNER_TEMP/upstream-review/review.md"
@@ -70,13 +91,13 @@ jobs:
           echo "patch_sha256=$(sha256sum "$RUNNER_TEMP/upstream-review/candidate.patch" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           cat "$RUNNER_TEMP/upstream-review/review.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Validate candidate without installing upstream dependencies
-        if: steps.detect.outputs.changed == 'true'
+        if: steps.prepare.outputs.changed == 'true'
         run: |
           npm run check
           npm test
       # Always retain the candidate, including failed validation. Publish requires success.
       - name: Save candidate and review summary
-        if: always() && steps.detect.outputs.changed == 'true'
+        if: always() && steps.detect.outputs.new_commit == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: upstream-${{ steps.detect.outputs.sha }}

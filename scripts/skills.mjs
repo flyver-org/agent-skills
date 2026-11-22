@@ -2,12 +2,12 @@ import { createHash } from 'node:crypto';
 import { cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readUpstreamConfig } from './upstreams.mjs';
 
 const catalogRoot = fileURLToPath(new URL('../skills/', import.meta.url));
 const vendorRoot = fileURLToPath(new URL('../vendor/coreyhaines31-marketingskills/', import.meta.url));
 const slug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const validName = (value) => slug.test(value) && value.length <= 64;
-export const upstream = 'https://github.com/coreyhaines31/marketingskills';
 export const guidePaths = ['ahrefs', 'dataforseo', 'exa', 'firecrawl', 'hunter', 'semrush']
   .map((name) => 'tools/integrations/' + name + '.md');
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -113,18 +113,21 @@ function checkHashes(root, paths, hashes) {
   }
 }
 
-function addVendored(catalog, root) {
+function addVendored(catalog, root, policy) {
   assertDirectory(root);
   assertPlainTree(root);
   const manifest = JSON.parse(readFileSync(join(root, 'upstream.json'), 'utf8'));
-  if (manifest.schemaVersion !== 2 || manifest.repository !== upstream ||
-      !/^[a-f0-9]{40}$/.test(manifest.commit) || manifest.license !== 'MIT') {
+  if (manifest.schemaVersion !== 2 || manifest.repository !== policy.repository ||
+      !/^[a-f0-9]{40}$/.test(manifest.commit) || manifest.license !== policy.license) {
     throw new Error('El formato, origen o licencia externos no coinciden con el catálogo.');
   }
   const contained = join(root, 'skills');
   const names = directories(contained);
   if (!names.length || JSON.stringify(names) !== JSON.stringify(Object.keys(manifest.skills).sort())) {
     throw new Error('Lista externa no coincide.');
+  }
+  if (JSON.stringify(names) !== JSON.stringify([...policy.skills].sort())) {
+    throw new Error('El inventario vendorizado no coincide con la selección de upstreams.yaml.');
   }
   const sharedPaths = ['LICENSE', ...(names.includes('link-building') ? guidePaths : [])];
   const skillsPaths = plainFiles(contained);
@@ -151,7 +154,7 @@ function addVendored(catalog, root) {
   }
 }
 
-export function loadCatalog(root = catalogRoot, external = root === catalogRoot ? vendorRoot : undefined) {
+export function loadCatalog(root = catalogRoot, external = root === catalogRoot ? vendorRoot : undefined, policy) {
   const catalog = new Map();
   for (const category of directories(root)) {
     for (const name of directories(join(root, category))) {
@@ -159,7 +162,7 @@ export function loadCatalog(root = catalogRoot, external = root === catalogRoot 
       catalog.set(name, readSkill(category, name, join(root, category, name)));
     }
   }
-  if (external) addVendored(catalog, external);
+  if (external) addVendored(catalog, external, policy ?? readUpstreamConfig());
   if (!catalog.size) throw new Error('El catálogo está vacío.');
   return catalog;
 }
@@ -230,10 +233,14 @@ function main([command, ...args]) {
     const skill = catalog.get(args[0]);
     if (!skill) throw new Error(`Skill desconocida: ${args[0]}`);
     console.log(`${skill.name}: ${skill.version ?? 'sin versión declarada'} (${skill.commit ?? 'Flyver'})`);
+  } else if (command === 'audit-upstream' && !args.length) {
+    for (const skill of catalog.values()) {
+      if (skill.commit) console.log('- ' + skill.name + ' @ ' + (skill.version ?? 'sin versión declarada') + ': hashes verificados');
+    }
   } else if (command === 'install') {
     install(catalog, args);
   } else {
-    throw new Error('Uso: validate | list [tema] | version <skill> | install --target <proyecto> [--agent codex|claude-code] <skill>...');
+    throw new Error('Uso: validate | list [tema] | version <skill> | audit-upstream | install --target <proyecto> [--agent codex|claude-code] <skill>...');
   }
 }
 

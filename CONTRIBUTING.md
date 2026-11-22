@@ -5,4 +5,4 @@
 3. Si adaptas contenido ajeno, registra origen, versión y licencia en `SOURCES.md`, y no lo incorpores si no tienes permiso.
 4. Describe un caso representativo y el resultado verificable. Corre `npm run check` y `npm test`. Revisa el diff antes de instalar o publicar.
 
-Para actualizar un paquete externo, sigue el [flujo de revisión del upstream](docs/landing-skills.md#actualizar-por-pr); no edites el snapshot en lugar.
+Para actualizar un paquete externo, sigue el [flujo de revisión del upstream](docs/landing-skills.md#actualizar-por-pr); edita primero la selección en `upstreams.yaml` si quieres incluir o retirar una skill, y regenera el snapshot. No edites los archivos vendorizados a mano.

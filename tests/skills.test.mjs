@@ -147,3 +147,13 @@ test('link-building never overwrites a shared guide or partially installs on col
   assert.equal(existsSync(join(target, '.claude', 'skills')), false);
   assert.equal(readFileSync(join(guides, 'hunter.md'), 'utf8'), 'keep');
 });
+
+test('audits each approved package separately without network calls', () => {
+  const policy = loadCatalog();
+  const result = run('audit-upstream');
+  assert.equal(result.status, 0, result.stderr);
+  const lines = result.stdout.trim().split('\n');
+  assert.equal(lines.length, [...policy.values()].filter((s) => s.commit).length);
+  assert.ok(lines.every((line) => /: hashes verificados$/.test(line)));
+  assert.doesNotMatch(result.stdout, /flyver-prospeccion-b2b/);
+});
