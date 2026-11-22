@@ -1,6 +1,8 @@
 ---
 name: flyver-brief-ui
 description: Convierte una necesidad de producto en un brief de interfaz implementable. Úsala al diseñar pantallas, flujos y estados de una función.
+metadata:
+  version: "1.0.0"
 ---
 
 # Brief de interfaz

@@ -1,6 +1,8 @@
 ---
 name: flyver-contenido-social
 description: Redacta contenido social B2B a partir de una oferta, demostración o caso verificable. Úsala para ganchos, captions y guiones cortos listos para revisión.
+metadata:
+  version: "1.0.0"
 ---
 
 # Contenido social B2B

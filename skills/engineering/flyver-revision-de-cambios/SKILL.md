@@ -1,6 +1,8 @@
 ---
 name: flyver-revision-de-cambios
 description: Revisa diffs, PR y correcciones de software con foco en regresiones observables. Úsala para aportar hallazgos verificables, no para editar o fusionar sin alcance autorizado.
+metadata:
+  version: "1.0.0"
 ---
 
 # Revisión de cambios

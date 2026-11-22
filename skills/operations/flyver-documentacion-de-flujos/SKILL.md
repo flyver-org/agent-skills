@@ -1,6 +1,8 @@
 ---
 name: flyver-documentacion-de-flujos
 description: Documenta un proceso operativo con responsables, excepciones y validación. Úsala al transformar notas, entrevistas o diagramas en un flujo comprobable.
+metadata:
+  version: "1.0.0"
 ---
 
 # Documentación de flujos

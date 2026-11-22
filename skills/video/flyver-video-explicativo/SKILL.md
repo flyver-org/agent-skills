@@ -1,6 +1,8 @@
 ---
 name: flyver-video-explicativo
 description: Diseña y revisa videos explicativos cortos con narrativa visual. Úsala para guion, storyboard, dirección de animación y control del render.
+metadata:
+  version: "1.0.0"
 ---
 
 # Video explicativo corto

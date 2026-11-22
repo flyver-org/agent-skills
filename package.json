@@ -6,7 +6,7 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "check": "node scripts/skills.mjs validate",
-    "test": "node --test",
+    "test": "node --test tests/skills.test.mjs tests/refresh-upstream.test.mjs",
     "skills": "node scripts/skills.mjs"
   }
 }
