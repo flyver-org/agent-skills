@@ -111,11 +111,11 @@ test('validator rejects vendored content that differs from the lock', (t) => {
   const root = temp(t);
   const catalog = fileURLToPath(new URL('../skills/', import.meta.url));
   const vendor = fileURLToPath(new URL('../vendor/coreyhaines31-marketingskills/', import.meta.url));
-  const copy = join(root, 'vendored');
+  const copy = join(root, 'coreyhaines31-marketingskills');
   cpSync(vendor, copy, { recursive: true });
   const path = join(copy, 'skills', 'cro', 'SKILL.md');
   writeFileSync(path, readFileSync(path, 'utf8') + '\nAlterado.\n');
-  assert.throws(() => loadCatalog(catalog, copy), /SHA-256 externo distinto/);
+  assert.throws(() => loadCatalog(catalog, undefined, root), /SHA-256 externo distinto/);
 });
 
 test('full catalogue reports pinned and original versions', () => {
@@ -125,7 +125,7 @@ test('full catalogue reports pinned and original versions', () => {
   const copy = manifest.skills.copywriting;
   assert.ok(copy);
   assert.equal(run('version', 'copywriting').stdout.trim(),
-    'copywriting: ' + (copy.version ?? 'sin versión declarada') + ' (' + copy.commit + ')');
+    'copywriting: ' + (copy.version ?? 'sin versión declarada') + ' (coreyhaines31-marketingskills @ ' + copy.commit + ')');
   assert.match(run('version', b2b).stdout, /1\.0\.0 \(Flyver\)/);
   assert.equal(run('version', 'package-not-found').status, 1);
 });
@@ -146,4 +146,14 @@ test('link-building never overwrites a shared guide or partially installs on col
   assert.notEqual(run(...getArgs(target, '--agent', 'claude-code', b2b, 'link-building')).status, 0);
   assert.equal(existsSync(join(target, '.claude', 'skills')), false);
   assert.equal(readFileSync(join(guides, 'hunter.md'), 'utf8'), 'keep');
+});
+
+test('audits each approved package separately without network calls', () => {
+  const policy = loadCatalog();
+  const result = run('audit-upstream');
+  assert.equal(result.status, 0, result.stderr);
+  const lines = result.stdout.trim().split('\n');
+  assert.equal(lines.length, [...policy.values()].filter((s) => s.commit).length);
+  assert.ok(lines.every((line) => /: hashes verificados$/.test(line)));
+  assert.doesNotMatch(result.stdout, /flyver-prospeccion-b2b/);
 });

@@ -2,14 +2,16 @@ import { createHash } from 'node:crypto';
 import { cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { knownLicenses, readUpstreamConfig } from './upstreams.mjs';
 
-const catalogRoot = fileURLToPath(new URL('../skills/', import.meta.url));
-const vendorRoot = fileURLToPath(new URL('../vendor/coreyhaines31-marketingskills/', import.meta.url));
+export const catalogRoot = fileURLToPath(new URL('../skills/', import.meta.url));
+export const vendorBase = fileURLToPath(new URL('../vendor/', import.meta.url));
 const slug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const validName = (value) => slug.test(value) && value.length <= 64;
-export const upstream = 'https://github.com/coreyhaines31/marketingskills';
 export const guidePaths = ['ahrefs', 'dataforseo', 'exa', 'firecrawl', 'hunter', 'semrush']
   .map((name) => 'tools/integrations/' + name + '.md');
+export const guidesFor = (source) => source.id === 'coreyhaines31-marketingskills' &&
+  source.skills.includes('link-building') ? guidePaths : [];
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 function statIfPresent(path) {
@@ -85,8 +87,8 @@ function readSkill(category, name, folder, provenance) {
     const target = link[1];
     if (/^(https?:\/\/|mailto:|#)/.test(target)) continue;
     // Exact upstream-only exceptions: a website example and six shared, lock-verified guides.
-    if (provenance && name === 'site-architecture' && target === '/features/analytics') continue;
-    if (provenance && name === 'link-building' && guidePaths.some((path) => target === '../../' + path)) continue;
+    if (provenance?.sourceId === 'coreyhaines31-marketingskills' && name === 'site-architecture' && target === '/features/analytics') continue;
+    if (provenance?.guides?.some(({ path }) => target === '../../' + path)) continue;
     const path = resolve(folder, decodeURIComponent(target.split('#')[0]));
     const inside = relative(folder, path);
     if (inside === '..' || inside.startsWith('..' + sep) || isAbsolute(inside) || !statIfPresent(path)) {
@@ -113,12 +115,12 @@ function checkHashes(root, paths, hashes) {
   }
 }
 
-function addVendored(catalog, root) {
+export function addVendored(catalog, root, policy) {
   assertDirectory(root);
   assertPlainTree(root);
   const manifest = JSON.parse(readFileSync(join(root, 'upstream.json'), 'utf8'));
-  if (manifest.schemaVersion !== 2 || manifest.repository !== upstream ||
-      !/^[a-f0-9]{40}$/.test(manifest.commit) || manifest.license !== 'MIT') {
+  if (manifest.schemaVersion !== 2 || manifest.repository !== policy.repository ||
+      !/^[a-f0-9]{40}$/.test(manifest.commit) || manifest.license !== policy.license) {
     throw new Error('El formato, origen o licencia externos no coinciden con el catálogo.');
   }
   const contained = join(root, 'skills');
@@ -126,7 +128,11 @@ function addVendored(catalog, root) {
   if (!names.length || JSON.stringify(names) !== JSON.stringify(Object.keys(manifest.skills).sort())) {
     throw new Error('Lista externa no coincide.');
   }
-  const sharedPaths = ['LICENSE', ...(names.includes('link-building') ? guidePaths : [])];
+  if (JSON.stringify(names) !== JSON.stringify([...policy.skills].sort())) {
+    throw new Error('El inventario vendorizado no coincide con la selección de upstreams.yaml.');
+  }
+  const sharedGuides = guidesFor(policy);
+  const sharedPaths = ['LICENSE', ...sharedGuides];
   const skillsPaths = plainFiles(contained);
   const wholeTree = new Set(plainFiles(root));
   for (const p of [...skillsPaths, ...sharedPaths.map((path) => join(root, path)), join(root, 'upstream.json')]) {
@@ -135,13 +141,22 @@ function addVendored(catalog, root) {
   if (wholeTree.size) throw new Error('Hay archivos externos no registrados.');
   checkHashes(root, sharedPaths.map((path) => join(root, path)), manifest.sharedSha256);
   const license = join(root, 'LICENSE');
+  if (!knownLicenses.get(policy.license)?.test(readFileSync(license, 'utf8').replace(/\r\n/g, '\n'))) {
+    throw new Error('El aviso de licencia no coincide con la política: ' + policy.id);
+  }
   for (const name of names) {
     if (catalog.has(name)) throw new Error(`Nombre de skill duplicado: ${name}`);
     const folder = join(contained, name);
     const entry = manifest.skills[name];
+    const localLicense = join(folder, 'LICENSE');
+    const carriesLicense = statIfPresent(localLicense);
+    if (carriesLicense && (!carriesLicense.isFile() ||
+        !readFileSync(localLicense).equals(readFileSync(license)))) {
+      throw new Error('Licencia de paquete diferente al aviso aprobado: ' + policy.id + '/' + name);
+    }
     const skill = readSkill('marketing', name, folder, {
-      license, commit: manifest.commit,
-      guides: name === 'link-building' ? guidePaths.map((path) => ({ path, source: join(root, path) })) : [],
+      license: carriesLicense ? undefined : license, commit: manifest.commit, sourceId: policy.id,
+      guides: name === 'link-building' ? sharedGuides.map((path) => ({ path, source: join(root, path) })) : [],
     });
     if (skill.version !== entry?.version || entry.commit !== manifest.commit) {
       throw new Error(`Versión o commit externo distinto en el lock: ${name}`);
@@ -151,7 +166,7 @@ function addVendored(catalog, root) {
   }
 }
 
-export function loadCatalog(root = catalogRoot, external = root === catalogRoot ? vendorRoot : undefined) {
+export function loadCatalog(root = catalogRoot, config = root === catalogRoot ? readUpstreamConfig() : null, vendors = vendorBase) {
   const catalog = new Map();
   for (const category of directories(root)) {
     for (const name of directories(join(root, category))) {
@@ -159,7 +174,13 @@ export function loadCatalog(root = catalogRoot, external = root === catalogRoot 
       catalog.set(name, readSkill(category, name, join(root, category, name)));
     }
   }
-  if (external) addVendored(catalog, external);
+  if (config) {
+    const approved = new Set(config.sources.map((source) => source.id));
+    for (const entry of readdirSync(vendors, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !approved.has(entry.name)) throw new Error('Snapshot sin fuente YAML aprobada: ' + entry.name);
+    }
+    for (const source of config.sources) addVendored(catalog, join(vendors, source.id), source);
+  }
   if (!catalog.size) throw new Error('El catálogo está vacío.');
   return catalog;
 }
@@ -229,11 +250,18 @@ function main([command, ...args]) {
   } else if (command === 'version' && args.length === 1) {
     const skill = catalog.get(args[0]);
     if (!skill) throw new Error(`Skill desconocida: ${args[0]}`);
-    console.log(`${skill.name}: ${skill.version ?? 'sin versión declarada'} (${skill.commit ?? 'Flyver'})`);
+    console.log(`${skill.name}: ${skill.version ?? 'sin versión declarada'} (${skill.sourceId ? skill.sourceId + ' @ ' + skill.commit : 'Flyver'})`);
+  } else if (command === 'audit-upstream' && args.length <= 1) {
+    const rows = [...catalog.values()].filter((s) => s.sourceId && (!args[0] || s.sourceId === args[0]));
+    if (!rows.length) throw new Error('Fuente desconocida: ' + args[0]);
+    for (const skill of rows) {
+      console.log('- ' + skill.sourceId + '/' + skill.name + ' @ ' +
+        (skill.version ?? 'sin versión declarada') + ': hashes verificados');
+    }
   } else if (command === 'install') {
     install(catalog, args);
   } else {
-    throw new Error('Uso: validate | list [tema] | version <skill> | install --target <proyecto> [--agent codex|claude-code] <skill>...');
+    throw new Error('Uso: validate | list [tema] | version <skill> | audit-upstream [origen] | install --target <proyecto> [--agent codex|claude-code] <skill>...');
   }
 }
 
