@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "repository": "https://github.com/coreyhaines31/marketingskills",
-  "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+  "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
   "license": "MIT",
   "skills": {
     "ab-testing": {
       "version": "2.0.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "938a9a9246c6b05657f509e7ab181f1c961dc14f9dcb5d452c574d3e44a39be2",
         "evals/evals.json": "fb32e1f75fc70e339e71f88b1cf10bd9f3d1835178a62d1156ed7dddc278f061",
@@ -16,7 +16,7 @@
     },
     "ad-creative": {
       "version": "2.13.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "3bbdaafe85e7be03eb8501919eafbc804dbf6052c1597d3afff7756c1d72667f",
         "assets/creative-review-template.html": "0ca7cce4fa809235aee776606205925d8dc01bde8a8325e2af7197d86394d3b7",
@@ -36,7 +36,7 @@
     },
     "ads": {
       "version": "2.7.9",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "abed4d7d69b8dad1de41927d36ae249c63fe86aa302cbda5113c0c4ab4263f79",
         "evals/evals.json": "664a2229af8c8e86a61ff77045be3b55e639be7756941db64877c3bbbbe05365",
@@ -60,7 +60,7 @@
     },
     "ai-seo": {
       "version": "2.12.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "1eb9e2c4d35adc3b98e10703c03909a92d2e45244095287f88e023ce7c307024",
         "evals/evals.json": "3824a16a8a8179ac69d40df5148560ad57421b05433b2c78fd191c7ea0a013b6",
@@ -83,7 +83,7 @@
     },
     "analytics": {
       "version": "2.2.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "45f0d00c1f8ea9ef836882a1ebbc1dadca12f96db8e921c4252e34a4126c903a",
         "evals/evals.json": "526f4bf20cedca26906dd0c3dfb6ae67de3f5b17977eb426820ca406c5ce0e59",
@@ -93,10 +93,10 @@
       }
     },
     "aso": {
-      "version": "2.0.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "version": "2.1.0",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
-        "SKILL.md": "c70e259ce5b7e71399a331ac1c8a7bf5985d5c5342b3dc1d03b37fcfa6b5ff55",
+        "SKILL.md": "30ced5720993da542560b72d97f4a9874bb1a615e3fc2e8cbdb3bcd3d5fda039",
         "evals/evals.json": "9b665d9e1eea16e46591ee42790642c396a4e20fd61306ec3171f9083a87b4d0",
         "references/apple-specs.md": "f7186eeff06b4ae0b24bc4360b3061b0fe98b1c20b7f6a95c6492437b827bfe9",
         "references/benchmarks.md": "64b33412338388f8d6b4cafc12a8547afff9d64ca37646a996cf1baecf54043c",
@@ -107,7 +107,7 @@
     },
     "attribution": {
       "version": "1.1.10",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "b8db5580db926f92b64a6d4d3ae5f17eb375249bf238a11c7a0809c84c58795e",
         "evals/evals.json": "795a908eacac5cd2213d03d635fd92d94a6d7d66544b68273a0dbdcc2609607b",
@@ -119,7 +119,7 @@
     },
     "churn-prevention": {
       "version": "2.0.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "ddfa4dda517edade4e5b49254fff037a037ed83d66cf7f4e84a676495823eea6",
         "evals/evals.json": "ee85b927a1bea665b0c080034c76dcc1a81c57be1f4e974a664c7f62c4329dfd",
@@ -129,7 +129,7 @@
     },
     "co-marketing": {
       "version": "2.0.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "906c48e61f49c7c94e4e0c3bfdad9556c31b8c9312b55bb762df393dfa205adc",
         "evals/evals.json": "4d6693bf2d8490435814090ba204cee5c10648998f5b5699815476736b391d78",
@@ -138,7 +138,7 @@
     },
     "cold-email": {
       "version": "2.2.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "329849d503883f364dbc94c5ce9d46683b335d4c3599d8cffa89be2d5dad594a",
         "evals/evals.json": "f6c28969b333377b2ee24aa122ed91455d52df893ee17e0f203fd0cb72b165d0",
@@ -156,7 +156,7 @@
     },
     "community-marketing": {
       "version": "2.0.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "d5b84b418c3010bee36a19bb4ad45b8b39aebcc96d98c65ae8bd68e3b13333c5",
         "evals/evals.json": "fa15fb195c71bd91099919f5a736007362a2b7c0574ffb4692eb300f213bd22f",
@@ -165,7 +165,7 @@
     },
     "competitor-profiling": {
       "version": "2.1.9",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "ebe96d2a92094b6da24b7b1be489302dcd547f4aabf5b820778605cbb4ef741d",
         "evals/evals.json": "89e7a8dee7c688adde18f2885ee4b52011faab29255f182c401b19fe78caf264",
@@ -175,7 +175,7 @@
     },
     "competitors": {
       "version": "2.3.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "36d3f23aeb8358caff28ecff0cccf436d93afc88a0e2a05aff4353a77efee11b",
         "evals/evals.json": "da6c92781fdd077dbac1ea9c35cd1fb4f0ec542075ee00966c058d3287a2d2e7",
@@ -185,7 +185,7 @@
     },
     "content-strategy": {
       "version": "2.1.8",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "6bc1c8df711a6c9466e312dca9c99a895bd76989b7a52d0f39dca340db3bc5f5",
         "evals/evals.json": "10167e7125ee77cbabe4f03953750dd99ea147f7461027fdbb0cf8e089e5506d",
@@ -195,7 +195,7 @@
     },
     "conversion-tracking": {
       "version": "1.0.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "84a702f8583d468e039c6b53201b4189e895dde30a40883bffdee37f65d704b9",
         "assets/gtm-recipes/README.md": "5838272e4d524a4d55aec96faf987921dd888dea3eddff2d4f81e402b999248d",
@@ -276,7 +276,7 @@
     },
     "copy-editing": {
       "version": "2.2.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "ef6bf9e792edac9ff524576a7eea6980fd13e605e5561736b045136341cde63e",
         "evals/evals.json": "cc18c9f51094058759267d465cfcc50da65f248f66b923326781aa642d622ca7",
@@ -287,7 +287,7 @@
     },
     "copywriting": {
       "version": "2.3.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "86dc0466493e8ac59ab17a8f28fd1403e2a322921ed2a8f96b2d0c442ad99d01",
         "evals/evals.json": "ccec86052a0edd8646d0e50e63c08e0e971f443d8f6e9178843a1629f79efdb0",
@@ -298,7 +298,7 @@
     },
     "cro": {
       "version": "2.0.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "0f8588aba125de102498ca3bbaa0151c8ebffa0a7ad85c14d992ef16db02fb2d",
         "evals/evals.json": "62f3003602836e2b49d797ca582e7703629a6b07b131eb77b51b2bb39fe65775",
@@ -307,18 +307,18 @@
       }
     },
     "customer-research": {
-      "version": "2.0.8",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "version": "2.0.9",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
-        "SKILL.md": "d12b522641884acb385f7a919138b5bfbe4ad9b070bd13a470923eebaa682a4f",
+        "SKILL.md": "b9f9c4bd9fe43e500258be5fac79e3b35a242914526e24dec812042267e40a06",
         "evals/evals.json": "fc8a15d12e582b55fa52ad27925594ab796ebd6a8ea13fed13722f97e4c51f01",
         "references/interviews-and-surveys.md": "56adecdc40af1242464937100349fc1a161627394909551720494bc5ee537076",
-        "references/source-guides.md": "7490a8d04f209d4c8c987530e79d0883a6b42027b86a920fc751cf8ea9904892"
+        "references/source-guides.md": "be2c9760468315851fdccba7dc9c4af5b3eb07686aa9ab2150ee322063f9dd31"
       }
     },
     "directory-submissions": {
       "version": "2.2.1",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "34d53866e6faffa704e6bff42093eebb80c40258cacf06db285eb3e801ed4a73",
         "evals/evals.json": "a8ea17c0d823f945438ab70d9d5c2522b8a4eae77ddc80b4086ba371301325cb",
@@ -331,7 +331,7 @@
     },
     "emails": {
       "version": "2.1.9",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "5687682141748000282747e85ef6501c0ad4c78731e138afc9b712ebb91ae750",
         "evals/evals.json": "b90182c8b6edbb866ef82ad022db3d2fe8598e7329469117fb39edd9ab069f67",
@@ -342,7 +342,7 @@
     },
     "events": {
       "version": "1.0.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "c563896eb4479cd13bea43fe89920e965400b6f994f81bc3703ea1a813ac3247",
         "evals/evals.json": "f1177b2d7ab68d09805b69d37ae7294b9ba789b6a2915f9eb50187d6d1a8447b",
@@ -354,7 +354,7 @@
     },
     "free-tools": {
       "version": "2.0.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "cf89ce128533b0029bcb99270b2e7c9ed13746e11dfd7abb572f9667b2818040",
         "evals/evals.json": "240282a81d7a91c335da86d184e3a1ac2dddd5e286505c4177bcd88c96e67990",
@@ -364,7 +364,7 @@
     },
     "image": {
       "version": "2.0.8",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "6150a2c22b84b04903dabe1fa87d308936e41621a101fc33b4240e5181371ac0",
         "evals/evals.json": "61f38e67d5fa11016e97391e360402fa696e059015c754f422d061a361a3cead",
@@ -373,7 +373,7 @@
     },
     "influencer-marketing": {
       "version": "1.4.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "367e9ee7a88ca9280206858e76d795dc89eaea2a2ddaa6786ece8a089c11e4e5",
         "evals/evals.json": "b3cbbf95002a892cd311a99977ace2c6ca550c342d7a8f80994ba103f88d0a2a",
@@ -385,7 +385,7 @@
     },
     "launch": {
       "version": "2.2.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "9d93f17367df59103fd932462cb170d1cfa5561d44e00423a52f7dadbce1bc3d",
         "evals/evals.json": "f2ceb01d664e24ea253789a9a686997f5cc33a0fc99f57bf215acdada787322c",
@@ -395,7 +395,7 @@
     },
     "lead-magnets": {
       "version": "2.1.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "858b6c0735e7c79b191416344eb3bb57cfdc2743ddc9d50b4bcbef820a9e98e1",
         "evals/evals.json": "a6930404b17407d918dffac89fab225b7b07d8bdd116e8a45f6f6709348e8915",
@@ -408,7 +408,7 @@
     },
     "link-building": {
       "version": "1.1.0",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "8db0bc64b35611cfc5de60cdf27cc4441044dcfe4646059758c1109e664d389b",
         "evals/evals.json": "8b45575790135f0aebac00d2f296b92f46c5b66b5ba5c7cb1365d1f4598ad8a8",
@@ -419,7 +419,7 @@
     },
     "marketing-council": {
       "version": "1.0.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "527ae7ff801abc03b7dec7ab70132a1a70909988271f6deb3938b27d113484e1",
         "evals/evals.json": "c95d3d8cdaafb6ad178d5a72ee87f2ba655f41c1c7046c83705c93b2b9afa291",
@@ -440,7 +440,7 @@
     },
     "marketing-ideas": {
       "version": "2.0.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "b64d0d8125d272cc87ac25f5df4f0ea3c5dd5a58c3496007cb1ce3924f14cc7d",
         "evals/evals.json": "f97f2bd1c755e6ca85ab75c500db681bd19559fb070ac249bba135ed7d8ecf60",
@@ -449,12 +449,12 @@
       }
     },
     "marketing-loops": {
-      "version": "1.9.0",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "version": "1.9.1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
-        "SKILL.md": "d1ad5fcd33d422b096b349f8b3a4e06764b02934d23af877fa0d7009050dab24",
+        "SKILL.md": "a6733b6908deb4e0095fdf7cecb535f64d8fcf8b322574945ce85ece97897611",
         "evals/evals.json": "b077b28ec346b614dfe6fd828a4cd8df10134f221e49743fece6765da0fe99a4",
-        "references/loop-catalog.md": "5143f86548443ff1ddb0fc21bf2d68ab34e50e7a7667e924e019969ed60cc11d",
+        "references/loop-catalog.md": "a5806f0fd20c8a5a9a0692f7076fdf5b2dd1b865b8f61a84b51b18f2b9a231a7",
         "references/loop-guardrails.md": "a93cdb67d28773d72e789c937a26f3062129c8a0076018ac24269d52e7a31e46",
         "references/loop-orchestration.md": "8ef60ebde4fec8ef4f94fb6d087ddac5e311c0c3c298015f681382fe735ca1d6",
         "references/loop-state.md": "4ffe822756019407babc4a3cb337be160362ad88b41919cb70d1d039a76e2c15",
@@ -465,7 +465,7 @@
     },
     "marketing-plan": {
       "version": "1.2.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "9f4b07b78d58ea5c5da23e91e05304047df60685485c16c28352c0fb99a80ac0",
         "evals/evals.json": "db82d68909edc79a44e17b40e8b1ca9c6346455d0a5ebe27b6b588229f746dfa",
@@ -487,7 +487,7 @@
     },
     "marketing-psychology": {
       "version": "2.0.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "755efd52954ecbbddc6fd0fe07cfa4999b63544bf716f2b5587a50c6f26228c0",
         "evals/evals.json": "c3b7d15b3008eeb493796e21affd6a0c6e7ce312f9cfeffcdef467857903c733"
@@ -495,7 +495,7 @@
     },
     "offers": {
       "version": "1.0.6",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "d5de835c90e65c9fc117508760ca6df5d8d0ab546ffe6933beab089c944ba71c",
         "evals/evals.json": "abfd1e7a6040a7bd09440d2cda7410a20e20a67a40cb562953d62a0f1c467ece",
@@ -511,7 +511,7 @@
     },
     "onboarding": {
       "version": "2.0.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "3118533cd06066715b6fa3c000e5d2994ad1c36b73cbf82501a9711381514880",
         "evals/evals.json": "296b62f2dadbeee44108b68ab7f8509e5e7d72f5bc7b89759dc869b623badf97",
@@ -522,7 +522,7 @@
     },
     "paywalls": {
       "version": "2.1.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "46edbabdf67b663e59d8fa283b4aeb0f3cbff99b0216ae52aa6fd607477faadf",
         "evals/evals.json": "6c3a8745af66398075f66e3c18d14438ed7ee01f84497875193f1a6c2d34e3cd",
@@ -532,7 +532,7 @@
     },
     "popups": {
       "version": "2.0.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "fbbe47118ac0b9a18b3b07cc72bc6610c6a4f1c4c4817739c1e798bd8710ff64",
         "evals/evals.json": "dca07b13560aea57cb0739235390c420f82c45d4e6ce01c6f7fb59fc225d2c00"
@@ -540,7 +540,7 @@
     },
     "pricing": {
       "version": "2.1.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "4f0a939631eca1b4bbee22bf6bc88b35ac06c33bfa8e4e837c8767a4bf6f5b54",
         "evals/evals.json": "ea2ec5a51826311225c806c9ff3f7fc8c4716b154f7b91aba67ab8639bdb8984",
@@ -552,7 +552,7 @@
     },
     "product-marketing": {
       "version": "2.2.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "8dbccc22998b3cac194c3509fa93d119163b82c9b0a1ce573e6737e5a5ccf555",
         "evals/evals.json": "0c6599b88f50ec1be91096a36ba6c5a15cf8312151394e3469e5ddb991b19afb",
@@ -561,7 +561,7 @@
     },
     "programmatic-seo": {
       "version": "2.1.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "f59dcb0892fc615d6df8f6debedd6b08de910ad220d5ec4a18e62f076a934c00",
         "evals/evals.json": "d336e380eee0217b0be6e472703434b9e6ac4a424957c6b4a080440646c8e285",
@@ -570,26 +570,26 @@
       }
     },
     "prospecting": {
-      "version": "1.6.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "version": "1.8.0",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
-        "SKILL.md": "dd9343bdcc3dadd059c4155e818778377bd62f3e704322d1073d9f06656d4315",
-        "evals/evals.json": "c9e5a095574f57c96e2bd643cba7e404594dc036b020b18521712b4c38675167",
+        "SKILL.md": "57d825ef97609dd3019a6c7d7c808d00b180fa7065d1a2fa507bd4133f5ff7b3",
+        "evals/evals.json": "121fcf559858a66fb689e5c0a28518b0d75f6373aeb58a64eef8d554659ea0a3",
         "references/account-research.md": "cf09a7f41b4963d919dcdf96d659fe898a1ade5328ab481864419f6dd1d4bba9",
         "references/b2b-prospecting.md": "b7a05da9d1584cc8d21432a43fe1ba802c4f9a6c601e3885d4117cc9d4d52f37",
         "references/compliance.md": "ef2f869b4f1d43c0f1eb6cd63b069f7a975b732cfe607ad68378fb5353239556",
-        "references/data-sources.md": "2262f2172c285b98b1df73974d4cb441c8f835645b4d7ee21a340ff5df2a1182",
+        "references/data-sources.md": "95d7b160c6b300411cf9772adf7b1cdcccd1099af2d48692eb5f66970e6f465e",
         "references/demand-signals.md": "489b8fb96a828578b6812bfabfbba8ce86d07545b21716a873501ba4d464f4ee",
         "references/enrichment-playbook.md": "dcdb131d83e0a010fdbb572c828b621e9db10f96b6fafd891499683ed9a4a63c",
         "references/local-prospecting.md": "1dd71471a3413d5b0a9d230b1e42ca95469c617285bf7e2abdfa463428367fc3",
         "references/saas-prospecting.md": "18be53f055f3f8a2ca647dccc8d8d8d177a0df5820193463542f87fa4eeafcf8",
-        "references/signal-plays.md": "e5a3a32ab129bb6330eb8fb22a685b4e5d607f1d3c89a49fb83f4c31914be3d6",
+        "references/signal-plays.md": "92bc98be01988dee987a8bac4c8ee7cb1de5d7be620add475956f0affbffb3c3",
         "references/sourcing-and-enrichment.md": "d7f47cf69ee1e78bb21c50f2b0050460899f8e9e001c40261e08e38dd6fa9fbc"
       }
     },
     "public-relations": {
       "version": "1.3.1",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "72bfaf639021d84635c60495931b8872fd25925ea407e3b398ff7d00dd5ee3ae",
         "evals/evals.json": "b7bcdf7ba878fb088276bd06263dfcf35fdb857d5e2b6bbdff434a709e7dadaa",
@@ -606,7 +606,7 @@
     },
     "referrals": {
       "version": "2.2.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "788d7a6f70142e069afe00bfc345cce6965e3e91d7aca0192b080552891aa523",
         "evals/evals.json": "5148d0e25787ed7b2305b3f356ebf4c329181933696d1085a3f53f3b32b0e766",
@@ -621,7 +621,7 @@
     },
     "reverse-engineer-marketing": {
       "version": "1.2.0",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "ed083ee846eec35c76113fb1de0fc83a868154c9237a72d7038d91b99dc59397",
         "evals/evals.json": "09545f788ed41ee810b2b2aa21210c4c52a6952cbd92f147bea1c5f048089cbc",
@@ -672,7 +672,7 @@
     },
     "revops": {
       "version": "2.2.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "443e7028b2cdff93e60d051fe528003e4b3569130a120ac649eaac2fd8013ac6",
         "evals/evals.json": "fa11d55563f5178a42309f9704c38df716ade44918197578d3c4fc06ff62e344",
@@ -685,7 +685,7 @@
     },
     "sales-enablement": {
       "version": "2.4.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "6869bac9c9f5e404bc01de85800f8d90ccfb2c06d25fb2bafe1d3d4f2e61fc36",
         "evals/evals.json": "5a051cfa1225515da3176a93ddb907b8efd091f9c4a485ebcdb867eea1cb7bf0",
@@ -699,7 +699,7 @@
     },
     "schema": {
       "version": "2.0.5",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "673fa46bad2f2d4649955c473b11778bd2d258317662df670b31414e28725a84",
         "evals/evals.json": "6a194556545e53876ca8c7a53f18bf012f8db9b23e8fd2adb1c3f966c38cfbab",
@@ -707,10 +707,10 @@
       }
     },
     "seo-audit": {
-      "version": "2.2.9",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "version": "2.2.10",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
-        "SKILL.md": "edad34843d2c97a2380c4ee421efb6ce98414bf52660dbe8cec49b8b73acc393",
+        "SKILL.md": "91bad6e5a85a8fef21c8d03876978e4e4e15c23a0785bb7471100d9f3a4beea8",
         "evals/evals.json": "1524e98916ab53abb894fb80827a8d0e1815041adca2ee2023b89916d68f22b2",
         "references/ai-writing-detection.md": "f1e273f56ce7e2215ff218bf903680ddcec0fd026ab90c3ebfb3439ed0edfaa4",
         "references/international-seo.md": "0603022cca968acf7889fc224221aa0e70955ba64355bc18b06f7e86b32f45e5",
@@ -723,7 +723,7 @@
     },
     "signup": {
       "version": "2.0.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "5d54fb404a0eeb04043899230ad15a72b327a1075cc2c220838caf0cdf6ec3b7",
         "evals/evals.json": "ce012fff8e559b5f622826826e7b137c650c96f8193a7e10add60f75c2417edd"
@@ -731,7 +731,7 @@
     },
     "site-architecture": {
       "version": "2.1.3",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "0c71871aea12689012b4d85aaaf24a4752d3f0e985603c4992d5c0bf0fce57ea",
         "evals/evals.json": "ed6f68ba0f8355efe26d89eae51d64c381d644cc7e942e80539a660cb52c9b02",
@@ -743,7 +743,7 @@
     },
     "sms": {
       "version": "1.1.4",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "1fd7d9cb070269fee1b8d433adb64189e45267147b864dd021dab9de5fa7db1a",
         "evals/evals.json": "cb0b825cb124b131792e6d7bb5f7bdd1557b39905568f356e1e3a172f197bbd1",
@@ -754,15 +754,15 @@
       }
     },
     "social": {
-      "version": "2.6.0",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "version": "2.6.1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
-        "SKILL.md": "3c367239039ca820a4b5915d6c669a155bb4d52ac303cd34fac5d0795e7517a5",
+        "SKILL.md": "d432139c55f101161116037978f3a4e73e83019788f5de62aea05308e849e991",
         "evals/evals.json": "4d7a21a7675efc30d24ee276a6d38f004d483d4142e2a49c944aa355ed2ba686",
         "references/carousel-frameworks.md": "e703aa530ec9f68cdf5b58e8e0d4d1a5cc3f22b9e2d3e3222f16a9763d423247",
         "references/chinese-platforms.md": "71e814cd2af184350f626b547ee852774f74e07e91a68f019ad7b6567770865c",
         "references/listening-sources-template.md": "c68bc6f57b0a48c432b1ce72c9324d41a04d0e7784d0bab91afb4a6065a43e38",
-        "references/listening.md": "52cf68aaaa57a69b69b3587ffd9b848a6f1ca7e0d51378f566339ad7f2b730e0",
+        "references/listening.md": "f0101e9401fec8a60177f922b35453ffbedc1c04c97c0ab196c7777e811fb2a8",
         "references/platform-limits.md": "6ecc6b40ff82b95c48906341f7d3c58337671d4d94f624c858764f1ed5a77c3c",
         "references/platforms.md": "bb8c2f466184518a1290edbea99eef6b7dcad8e1f8091453d4dc5a21831b66b9",
         "references/post-templates.md": "9cca4680c95801daedfd8acadf9089d0083784c2567784888807569896f71d9b",
@@ -774,7 +774,7 @@
     },
     "video": {
       "version": "2.4.7",
-      "commit": "5b2b400eec1e7e1cec76245a715d0b0d4fd2a9c1",
+      "commit": "8fd2fcade2fd6629026e9dfe6d133b55b36968b9",
       "sha256": {
         "SKILL.md": "cbc6483db9cd316dc49166c8ab03340c1a1fbac5ff0101b61bd2131f91aaebdd",
         "evals/evals.json": "9af22d18b221899d0f803dbaa87552c5bb1cf0d68385608a8ff3be0a30f9624c",
@@ -790,7 +790,7 @@
     "tools/integrations/ahrefs.md": "3018f518eb87d8fe10611f42785d6e9d8bd3a3438ea8b024ce005f6c25f7ec0d",
     "tools/integrations/dataforseo.md": "89ab0a8b685ecfd099da18f9720f41d57ba3c96ba15daebaa04be5e81203c2b5",
     "tools/integrations/exa.md": "662c9d19b3a952103967e36666b055f553153e36bc352bb64d62d9bb44691433",
-    "tools/integrations/firecrawl.md": "7e0cc0e4d74a89eaa68e8e551c2579db2b1cdf9d69500859f922bb75c2870d28",
+    "tools/integrations/firecrawl.md": "3da7424d5aa0f25e922088d4dfb19e38cdb66bc8cfeeb8caf6e1df769e660254",
     "tools/integrations/hunter.md": "afdcefd30d2f461c9a595ae03d98c57785fb4db6f03e4de221a590212797e46c",
     "tools/integrations/semrush.md": "dcff7f089fe5076e819f613d832509c5632a8ca92f6357af21af9635273f9914"
   }
